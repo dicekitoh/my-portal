@@ -1,0 +1,82 @@
+#!/bin/bash
+# Portal Manager CLI
+# Mac mini Server - Top 5 Priority System
+
+PORTAL_DIR="$HOME/projects/portal"
+MANAGER="$PORTAL_DIR/portal_manager.py"
+
+cd "$PORTAL_DIR"
+
+case "$1" in
+    "")
+        echo ""
+        echo "╔══════════════════════════════════════════════╗"
+        echo "║     Portal Site Management System            ║"
+        echo "║     Mac mini Server - Priority #5            ║"
+        echo "╚══════════════════════════════════════════════╝"
+        echo ""
+        echo "Commands:"
+        echo "  portal status    - Show site status"
+        echo "  portal list      - List all pages"
+        echo "  portal create    - Create new page"
+        echo "  portal edit      - Open page for editing"
+        echo "  portal deploy    - Deploy to GitHub Pages"
+        echo "  portal backup    - Create backup"
+        echo "  portal open      - Open site in browser"
+        echo "  portal local     - Open local site"
+        echo "  portal check     - Check online status"
+        echo "  portal log       - Show recent logs"
+        echo ""
+        ;;
+    status)
+        python3 "$MANAGER" status
+        ;;
+    list)
+        python3 "$MANAGER" list
+        ;;
+    create)
+        if [ -z "$2" ] || [ -z "$3" ]; then
+            echo "Usage: portal create <id> <title>"
+            echo "Example: portal create menu メニュー"
+            exit 1
+        fi
+        python3 "$MANAGER" create "$2" "${@:3}"
+        ;;
+    edit)
+        if [ -z "$2" ]; then
+            echo "Available files:"
+            ls -1 "$PORTAL_DIR"/*.html
+            echo ""
+            echo "Usage: portal edit <filename>"
+        else
+            ${EDITOR:-nano} "$PORTAL_DIR/$2"
+        fi
+        ;;
+    deploy)
+        echo "Deploying to GitHub Pages..."
+        python3 "$MANAGER" deploy "${@:2}"
+        ;;
+    backup)
+        python3 "$MANAGER" backup
+        ;;
+    open)
+        URL=$(python3 -c "import json; print(json.load(open('$PORTAL_DIR/config.json'))['site']['url'])")
+        echo "Opening: $URL"
+        xdg-open "$URL" 2>/dev/null || echo "URL: $URL"
+        ;;
+    local)
+        URL=$(python3 -c "import json; print(json.load(open('$PORTAL_DIR/config.json'))['site']['local_url'])")
+        echo "Opening: $URL"
+        xdg-open "$URL" 2>/dev/null || echo "URL: $URL"
+        ;;
+    check)
+        python3 "$MANAGER" check
+        ;;
+    log)
+        tail -20 "$HOME/logs/portal_manager.log" 2>/dev/null || echo "No logs yet"
+        ;;
+    *)
+        echo "Unknown command: $1"
+        echo "Run 'portal' for help"
+        ;;
+esac
