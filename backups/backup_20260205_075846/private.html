@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Members Only - My Portal</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Hiragino Sans', sans-serif;
+            background-color: #ffffff;
+            color: #333;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        header {
+            padding: 2rem;
+            text-align: center;
+            border-bottom: 1px solid #eee;
+        }
+        header h1 {
+            font-size: 1.8rem;
+            font-weight: 300;
+        }
+        main {
+            flex: 1;
+            padding: 2rem;
+            max-width: 600px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        /* パスワード入力画面 */
+        #login-screen {
+            text-align: center;
+            padding: 3rem 1rem;
+        }
+        #login-screen h2 {
+            font-size: 1.2rem;
+            font-weight: 400;
+            margin-bottom: 2rem;
+            color: #555;
+        }
+        #login-screen input {
+            width: 100%;
+            max-width: 300px;
+            padding: 0.8rem 1rem;
+            font-size: 1rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-bottom: 1rem;
+        }
+        #login-screen input:focus {
+            outline: none;
+            border-color: #999;
+        }
+        #login-screen button {
+            display: block;
+            width: 100%;
+            max-width: 300px;
+            margin: 0 auto;
+            padding: 0.8rem 1rem;
+            font-size: 1rem;
+            background: #333;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        #login-screen button:hover {
+            background: #555;
+        }
+        .error {
+            color: #c00;
+            font-size: 0.9rem;
+            margin-top: 1rem;
+        }
+
+        /* コンテンツ画面 */
+        #content {
+            display: none;
+        }
+        .content-section {
+            background: #f9f9f9;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+        }
+        .content-section h3 {
+            font-size: 1rem;
+            font-weight: 500;
+            margin-bottom: 1rem;
+            color: #333;
+        }
+        .content-section p {
+            font-size: 0.95rem;
+            color: #555;
+            line-height: 1.7;
+        }
+        .content-section ul {
+            margin-left: 1.5rem;
+            color: #555;
+        }
+        .content-section li {
+            margin-bottom: 0.5rem;
+        }
+
+        .back-link {
+            display: block;
+            text-align: center;
+            margin-top: 2rem;
+            color: #666;
+            text-decoration: none;
+        }
+        .back-link:hover {
+            color: #333;
+        }
+        .logout-btn {
+            display: inline-block;
+            margin-top: 2rem;
+            padding: 0.5rem 1rem;
+            font-size: 0.85rem;
+            color: #999;
+            background: none;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .logout-btn:hover {
+            color: #666;
+            border-color: #999;
+        }
+
+        footer {
+            padding: 1rem;
+            text-align: center;
+            border-top: 1px solid #eee;
+            font-size: 0.8rem;
+            color: #999;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Members Only</h1>
+    </header>
+    <main>
+        <!-- パスワード入力画面 -->
+        <div id="login-screen">
+            <h2>このページは保護されています</h2>
+            <input type="password" id="password-input" placeholder="パスワードを入力" autofocus>
+            <button onclick="checkPassword()">Enter</button>
+            <p class="error" id="error-msg"></p>
+        </div>
+
+        <!-- 認証後のコンテンツ -->
+        <div id="content">
+            <div class="content-section">
+                <h3>会員専用情報</h3>
+                <p>このページは認証済みユーザーのみ閲覧できます。</p>
+            </div>
+
+            <div class="content-section">
+                <h3>お知らせ</h3>
+                <ul>
+                    <li>2025年2月 - 新メニュー追加予定</li>
+                    <li>2025年3月 - 会員限定イベント開催</li>
+                    <li>2025年4月 - リニューアルオープン</li>
+                </ul>
+            </div>
+
+            <div class="content-section">
+                <h3>連絡先（会員専用）</h3>
+                <p>担当: 山田<br>
+                内線: 1234<br>
+                Email: member@example.com</p>
+            </div>
+
+            <a href="index.html" class="back-link">← トップに戻る</a>
+            <div style="text-align: center;">
+                <button class="logout-btn" onclick="logout()">ログアウト</button>
+            </div>
+        </div>
+    </main>
+    <footer>
+        <p>&copy; 2025 My Portal</p>
+    </footer>
+
+    <script>
+        // パスワードのSHA-256ハッシュ
+        const HASH = '5fac9782738bc55eeb2688891075f9e37fb6779d5f31786acc0d259ec5b3a2e7';
+        const STORAGE_KEY = 'portal_auth';
+
+        // SHA-256ハッシュ生成
+        async function sha256(text) {
+            const encoder = new TextEncoder();
+            const data = encoder.encode(text);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+
+        // 認証状態チェック
+        function checkAuth() {
+            const stored = localStorage.getItem(STORAGE_KEY);
+            if (stored === HASH) {
+                showContent();
+            }
+        }
+
+        // パスワード検証
+        async function checkPassword() {
+            const input = document.getElementById('password-input').value;
+            const hash = await sha256(input);
+
+            if (hash === HASH) {
+                localStorage.setItem(STORAGE_KEY, HASH);
+                showContent();
+            } else {
+                document.getElementById('error-msg').textContent = 'パスワードが違います';
+                document.getElementById('password-input').value = '';
+            }
+        }
+
+        // コンテンツ表示
+        function showContent() {
+            document.getElementById('login-screen').style.display = 'none';
+            document.getElementById('content').style.display = 'block';
+        }
+
+        // ログアウト
+        function logout() {
+            localStorage.removeItem(STORAGE_KEY);
+            location.reload();
+        }
+
+        // Enterキーでログイン
+        document.getElementById('password-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                checkPassword();
+            }
+        });
+
+        // ページ読み込み時に認証チェック
+        checkAuth();
+    </script>
+</body>
+</html>
