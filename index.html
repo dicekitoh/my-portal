@@ -89,23 +89,10 @@
         </nav>
     </main>
     <div class="counter">
-        Visitors: <span id="visitor-count">-</span>
+        <img src="https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https%3A%2F%2Fdicekitoh.github.io%2Fmy-portal&count_bg=%23555555&title_bg=%23999999&icon=&icon_color=%23E7E7E7&title=visitors&edge_flat=true" alt="visitor count" />
     </div>
     <footer>
         <p>&copy; 2025 My Portal</p>
     </footer>
-    <script>
-        // CountAPI を使用したシンプルなカウンター
-        const namespace = 'dicekitoh-my-portal';
-        const key = 'visits';
-        fetch(`https://api.countapi.xyz/hit/${namespace}/${key}`)
-            .then(res => res.json())
-            .then(data => {
-                document.getElementById('visitor-count').textContent = data.value.toLocaleString();
-            })
-            .catch(() => {
-                document.getElementById('visitor-count').textContent = '-';
-            });
-    </script>
 </body>
 </html>
