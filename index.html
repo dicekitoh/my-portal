@@ -59,6 +59,21 @@
             font-size: 0.8rem;
             color: #999;
         }
+        .counter {
+            text-align: center;
+            padding: 1rem;
+            color: #999;
+            font-size: 0.85rem;
+        }
+        .counter span {
+            display: inline-block;
+            background: #f5f5f5;
+            padding: 0.3rem 0.8rem;
+            border-radius: 4px;
+            margin-left: 0.5rem;
+            color: #333;
+            font-weight: 500;
+        }
     </style>
 </head>
 <body>
@@ -73,8 +88,24 @@
             <a href="#">アクセス</a>
         </nav>
     </main>
+    <div class="counter">
+        Visitors: <span id="visitor-count">-</span>
+    </div>
     <footer>
         <p>&copy; 2025 My Portal</p>
     </footer>
+    <script>
+        // CountAPI を使用したシンプルなカウンター
+        const namespace = 'dicekitoh-my-portal';
+        const key = 'visits';
+        fetch(`https://api.countapi.xyz/hit/${namespace}/${key}`)
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('visitor-count').textContent = data.value.toLocaleString();
+            })
+            .catch(() => {
+                document.getElementById('visitor-count').textContent = '-';
+            });
+    </script>
 </body>
 </html>
