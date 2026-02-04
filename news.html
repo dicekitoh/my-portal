@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>お知らせ - My Portal</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Hiragino Sans", sans-serif;
+            background-color: #ffffff;
+            color: #333;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        header { padding: 2rem; text-align: center; border-bottom: 1px solid #eee; }
+        header h1 { font-size: 1.8rem; font-weight: 300; }
+        main { flex: 1; padding: 2rem; max-width: 800px; margin: 0 auto; width: 100%; }
+        .news-item { background: #f9f9f9; padding: 1.5rem; border-radius: 8px; margin-bottom: 1.5rem; }
+        .news-item h3 { font-size: 1.1rem; margin-bottom: 0.5rem; }
+        .news-item .date { font-size: 0.85rem; color: #888; margin-bottom: 0.8rem; }
+        .news-item p { line-height: 1.6; }
+        .back-link { display: block; text-align: center; margin-top: 2rem; color: #666; text-decoration: none; }
+        .back-link:hover { color: #333; }
+        footer { padding: 1rem; text-align: center; border-top: 1px solid #eee; font-size: 0.8rem; color: #999; }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>お知らせ</h1>
+    </header>
+    <main>
+        <article class="news-item">
+            <h3>ポータルサイトをリニューアルしました</h3>
+            <div class="date">2026年2月5日</div>
+            <p>新しいデザインでポータルサイトを公開しました。今後も情報を更新していきます。</p>
+        </article>
+        <article class="news-item">
+            <h3>テスト投稿</h3>
+            <div class="date">2026年2月5日</div>
+            <p>Claude Codeからリモートで追加したページです。SSH経由でMac miniサーバーに接続し、自動的にデプロイしています。</p>
+        </article>
+        <a href="index.html" class="back-link">← トップに戻る</a>
+    </main>
+    <footer>
+        <p>&copy; 2026 My Portal</p>
+    </footer>
+</body>
+</html>
