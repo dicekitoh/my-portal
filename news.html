@@ -48,14 +48,8 @@
             cursor: pointer;
             transition: all 0.2s;
         }
-        .visibility-btn.showing {
-            background: #27ae60;
-            color: #fff;
-        }
-        .visibility-btn.hidden {
-            background: #e74c3c;
-            color: #fff;
-        }
+        .visibility-btn.showing { background: #27ae60; color: #fff; }
+        .visibility-btn.hidden { background: #e74c3c; color: #fff; }
         .visibility-btn:hover { opacity: 0.85; }
 
         body.admin-mode .visibility-btn { display: block; }
@@ -75,7 +69,66 @@
             color: #856404;
             text-align: center;
         }
+        .admin-bar .logout-btn {
+            background: #dc3545;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            padding: 0.3rem 0.8rem;
+            margin-left: 1rem;
+            font-size: 0.8rem;
+            cursor: pointer;
+        }
+        .admin-bar .logout-btn:hover { opacity: 0.85; }
         body.admin-mode .admin-bar { display: block; }
+
+        /* パスワードダイアログ */
+        .pw-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.4);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        .pw-overlay.show { display: flex; }
+        .pw-dialog {
+            background: #fff;
+            border-radius: 12px;
+            padding: 2rem;
+            width: 320px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+            text-align: center;
+        }
+        .pw-dialog h3 { font-size: 1rem; margin-bottom: 1rem; font-weight: 500; }
+        .pw-dialog input {
+            width: 100%;
+            padding: 0.6rem 0.8rem;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 0.95rem;
+            outline: none;
+        }
+        .pw-dialog input:focus { border-color: #666; }
+        .pw-dialog .pw-actions {
+            margin-top: 1rem;
+            display: flex;
+            gap: 0.5rem;
+        }
+        .pw-dialog .pw-actions button {
+            flex: 1;
+            padding: 0.5rem;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+        .pw-dialog .btn-login { background: #333; color: #fff; }
+        .pw-dialog .btn-login:hover { background: #555; }
+        .pw-dialog .btn-cancel { background: #eee; color: #333; }
+        .pw-dialog .btn-cancel:hover { background: #ddd; }
+        .pw-error { color: #e74c3c; font-size: 0.8rem; margin-top: 0.5rem; min-height: 1.2em; }
     </style>
 </head>
 <body>
@@ -83,7 +136,10 @@
         <h1>お知らせ</h1>
     </header>
     <main>
-        <div class="admin-bar">管理者モード — 各お知らせの表示/非表示を切り替えできます</div>
+        <div class="admin-bar">
+            管理者モード — 各お知らせの表示/非表示を切り替えできます
+            <button class="logout-btn" onclick="logoutAdmin()">ログアウト</button>
+        </div>
 
         <article class="news-item" data-news-id="news-20260206-prado">
             <button class="visibility-btn" onclick="toggleVisibility(this)"></button>
@@ -121,10 +177,35 @@
         <p>&copy; 2026 My Portal <span class="admin-toggle" id="adminToggle" onclick="toggleAdmin()">&#9881;</span></p>
     </footer>
 
+    <!-- パスワードダイアログ -->
+    <div class="pw-overlay" id="pwOverlay">
+        <div class="pw-dialog">
+            <h3>管理者パスワード</h3>
+            <input type="password" id="pwInput" placeholder="パスワードを入力">
+            <div class="pw-error" id="pwError"></div>
+            <div class="pw-actions">
+                <button class="btn-cancel" onclick="closePwDialog()">キャンセル</button>
+                <button class="btn-login" onclick="submitPassword()">ログイン</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         var STORAGE_KEY = 'portal_news_hidden';
+        var AUTH_KEY = 'portal_news_admin';
+        var ADMIN_HASH = '5fac9782738bc55eeb2688891075f9e37fb6779d5f31786acc0d259ec5b3a2e7';
         var adminMode = false;
 
+        // SHA-256
+        async function sha256(text) {
+            var data = new TextEncoder().encode(text);
+            var buf = await crypto.subtle.digest('SHA-256', data);
+            return Array.from(new Uint8Array(buf)).map(function(b) {
+                return b.toString(16).padStart(2, '0');
+            }).join('');
+        }
+
+        // --- 表示/非表示管理 ---
         function getHiddenIds() {
             try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
             catch(e) { return []; }
@@ -136,16 +217,14 @@
 
         function applyVisibility() {
             var hiddenIds = getHiddenIds();
-            var items = document.querySelectorAll('.news-item');
-            items.forEach(function(item) {
+            document.querySelectorAll('.news-item').forEach(function(item) {
                 var id = item.getAttribute('data-news-id');
                 var isHidden = hiddenIds.indexOf(id) !== -1;
                 var btn = item.querySelector('.visibility-btn');
 
                 if (isHidden) {
                     item.classList.add('is-hidden');
-                    if (!adminMode) item.style.display = 'none';
-                    else item.style.display = '';
+                    item.style.display = adminMode ? '' : 'none';
                     btn.textContent = '非表示中';
                     btn.className = 'visibility-btn hidden';
                 } else {
@@ -162,24 +241,77 @@
             var id = item.getAttribute('data-news-id');
             var hiddenIds = getHiddenIds();
             var idx = hiddenIds.indexOf(id);
-
-            if (idx !== -1) {
-                hiddenIds.splice(idx, 1);
-            } else {
-                hiddenIds.push(id);
-            }
-
+            if (idx !== -1) hiddenIds.splice(idx, 1);
+            else hiddenIds.push(id);
             saveHiddenIds(hiddenIds);
             applyVisibility();
         }
 
-        function toggleAdmin() {
-            adminMode = !adminMode;
-            document.body.classList.toggle('admin-mode', adminMode);
-            document.getElementById('adminToggle').classList.toggle('active', adminMode);
+        // --- 管理者認証 ---
+        function enterAdmin() {
+            adminMode = true;
+            document.body.classList.add('admin-mode');
+            document.getElementById('adminToggle').classList.add('active');
+            sessionStorage.setItem(AUTH_KEY, '1');
             applyVisibility();
         }
 
+        function logoutAdmin() {
+            adminMode = false;
+            document.body.classList.remove('admin-mode');
+            document.getElementById('adminToggle').classList.remove('active');
+            sessionStorage.removeItem(AUTH_KEY);
+            applyVisibility();
+        }
+
+        function toggleAdmin() {
+            if (adminMode) {
+                logoutAdmin();
+                return;
+            }
+            // セッション内で認証済みなら即切替
+            if (sessionStorage.getItem(AUTH_KEY) === '1') {
+                enterAdmin();
+                return;
+            }
+            openPwDialog();
+        }
+
+        // --- パスワードダイアログ ---
+        function openPwDialog() {
+            document.getElementById('pwOverlay').classList.add('show');
+            document.getElementById('pwInput').value = '';
+            document.getElementById('pwError').textContent = '';
+            document.getElementById('pwInput').focus();
+        }
+
+        function closePwDialog() {
+            document.getElementById('pwOverlay').classList.remove('show');
+        }
+
+        async function submitPassword() {
+            var input = document.getElementById('pwInput').value;
+            if (!input) return;
+            var hash = await sha256(input);
+            if (hash === ADMIN_HASH) {
+                closePwDialog();
+                enterAdmin();
+            } else {
+                document.getElementById('pwError').textContent = 'パスワードが違います';
+                document.getElementById('pwInput').value = '';
+                document.getElementById('pwInput').focus();
+            }
+        }
+
+        document.getElementById('pwInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') submitPassword();
+        });
+
+        document.getElementById('pwOverlay').addEventListener('click', function(e) {
+            if (e.target === this) closePwDialog();
+        });
+
+        // ページ読み込み時
         applyVisibility();
     </script>
 </body>
