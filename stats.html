@@ -156,7 +156,7 @@
             document.getElementById('content').innerHTML = html;
         }
 
-        var API_BASE = 'https://62f9-2400-2413-9402-db00-9a10-e8ff-fef1-98b4.ngrok-free.app';
+        var API_BASE = 'https://3388-2400-2413-9402-db00-9a10-e8ff-fef1-98b4.ngrok-free.app';
         fetch(API_BASE + '/api/stats', { headers: { 'ngrok-skip-browser-warning': 'true' } })
             .then(function(r) { return r.json(); })
             .then(render)
