@@ -17,13 +17,65 @@
         header { padding: 2rem; text-align: center; border-bottom: 1px solid #eee; }
         header h1 { font-size: 1.8rem; font-weight: 300; }
         main { flex: 1; padding: 2rem; max-width: 800px; margin: 0 auto; width: 100%; }
-        .news-item { background: #f9f9f9; padding: 1.5rem; border-radius: 8px; margin-bottom: 1.5rem; }
+        .news-item { background: #f9f9f9; padding: 1.5rem; border-radius: 8px; margin-bottom: 1.5rem; position: relative; }
         .news-item h3 { font-size: 1.1rem; margin-bottom: 0.5rem; }
         .news-item .date { font-size: 0.85rem; color: #888; margin-bottom: 0.8rem; }
         .news-item p { line-height: 1.6; }
         .back-link { display: block; text-align: center; margin-top: 2rem; color: #666; text-decoration: none; }
         .back-link:hover { color: #333; }
         footer { padding: 1rem; text-align: center; border-top: 1px solid #eee; font-size: 0.8rem; color: #999; }
+
+        /* 管理者モード */
+        .admin-toggle {
+            cursor: pointer;
+            user-select: none;
+            color: #ccc;
+            font-size: 0.75rem;
+            transition: color 0.2s;
+        }
+        .admin-toggle:hover { color: #999; }
+        .admin-toggle.active { color: #e74c3c; }
+
+        .visibility-btn {
+            display: none;
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            border: none;
+            border-radius: 6px;
+            padding: 0.4rem 0.8rem;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .visibility-btn.showing {
+            background: #27ae60;
+            color: #fff;
+        }
+        .visibility-btn.hidden {
+            background: #e74c3c;
+            color: #fff;
+        }
+        .visibility-btn:hover { opacity: 0.85; }
+
+        body.admin-mode .visibility-btn { display: block; }
+        body.admin-mode .news-item.is-hidden {
+            opacity: 0.4;
+            border: 2px dashed #e74c3c;
+        }
+
+        .admin-bar {
+            display: none;
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            border-radius: 8px;
+            padding: 0.8rem 1.2rem;
+            margin-bottom: 1.5rem;
+            font-size: 0.9rem;
+            color: #856404;
+            text-align: center;
+        }
+        body.admin-mode .admin-bar { display: block; }
     </style>
 </head>
 <body>
@@ -31,27 +83,34 @@
         <h1>お知らせ</h1>
     </header>
     <main>
-        <article class="news-item">
+        <div class="admin-bar">管理者モード — 各お知らせの表示/非表示を切り替えできます</div>
+
+        <article class="news-item" data-news-id="news-20260206-prado">
+            <button class="visibility-btn" onclick="toggleVisibility(this)"></button>
             <h3>【完了報告】南幌町 ランドクルーザープラド 査定終了のお知らせ</h3>
             <div class="date">2026年2月6日</div>
             <p>南幌町のお客様よりご依頼いただいておりましたトヨタ ランドクルーザープラド（2019年式／TRJ150W／TX Lパッケージ／走行距離 約48,000km）の査定が完了いたしました。外装・内装ともに良好な状態で、ディーゼルモデル特有のエンジン周りも整備記録が揃っており、高評価の査定結果となっております。査定結果の詳細につきましては、担当者より改めてご連絡差し上げます。ご不明な点がございましたらお気軽にお問い合わせください。</p>
         </article>
-        <article class="news-item">
+        <article class="news-item" data-news-id="news-20260205-smbc">
+            <button class="visibility-btn" onclick="toggleVisibility(this)"></button>
             <h3>【訂正】三井住友カード引き落とし日</h3>
             <div class="date">2026年2月5日</div>
             <p>引き落とし日は5日ではなく10日でした。勘違いしておりました。お騒がせいたしました。</p>
         </article>
-        <article class="news-item">
+        <article class="news-item" data-news-id="news-20260205-asahikawa">
+            <button class="visibility-btn" onclick="toggleVisibility(this)"></button>
             <h3>本日の予定</h3>
             <div class="date">2026年2月5日</div>
             <p>本日は終日旭川出張のため不在です。</p>
         </article>
-        <article class="news-item">
+        <article class="news-item" data-news-id="news-20260205-renewal">
+            <button class="visibility-btn" onclick="toggleVisibility(this)"></button>
             <h3>ポータルサイトをリニューアルしました</h3>
             <div class="date">2026年2月5日</div>
             <p>新しいデザインでポータルサイトを公開しました。今後も情報を更新していきます。</p>
         </article>
-        <article class="news-item">
+        <article class="news-item" data-news-id="news-20260205-test">
+            <button class="visibility-btn" onclick="toggleVisibility(this)"></button>
             <h3>テスト投稿</h3>
             <div class="date">2026年2月5日</div>
             <p>Claude Codeからリモートで追加したページです。SSH経由でMac miniサーバーに接続し、自動的にデプロイしています。</p>
@@ -59,7 +118,69 @@
         <a href="index.html" class="back-link">← トップに戻る</a>
     </main>
     <footer>
-        <p>&copy; 2026 My Portal</p>
+        <p>&copy; 2026 My Portal <span class="admin-toggle" id="adminToggle" onclick="toggleAdmin()">&#9881;</span></p>
     </footer>
+
+    <script>
+        var STORAGE_KEY = 'portal_news_hidden';
+        var adminMode = false;
+
+        function getHiddenIds() {
+            try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
+            catch(e) { return []; }
+        }
+
+        function saveHiddenIds(ids) {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(ids));
+        }
+
+        function applyVisibility() {
+            var hiddenIds = getHiddenIds();
+            var items = document.querySelectorAll('.news-item');
+            items.forEach(function(item) {
+                var id = item.getAttribute('data-news-id');
+                var isHidden = hiddenIds.indexOf(id) !== -1;
+                var btn = item.querySelector('.visibility-btn');
+
+                if (isHidden) {
+                    item.classList.add('is-hidden');
+                    if (!adminMode) item.style.display = 'none';
+                    else item.style.display = '';
+                    btn.textContent = '非表示中';
+                    btn.className = 'visibility-btn hidden';
+                } else {
+                    item.classList.remove('is-hidden');
+                    item.style.display = '';
+                    btn.textContent = '表示中';
+                    btn.className = 'visibility-btn showing';
+                }
+            });
+        }
+
+        function toggleVisibility(btn) {
+            var item = btn.closest('.news-item');
+            var id = item.getAttribute('data-news-id');
+            var hiddenIds = getHiddenIds();
+            var idx = hiddenIds.indexOf(id);
+
+            if (idx !== -1) {
+                hiddenIds.splice(idx, 1);
+            } else {
+                hiddenIds.push(id);
+            }
+
+            saveHiddenIds(hiddenIds);
+            applyVisibility();
+        }
+
+        function toggleAdmin() {
+            adminMode = !adminMode;
+            document.body.classList.toggle('admin-mode', adminMode);
+            document.getElementById('adminToggle').classList.toggle('active', adminMode);
+            applyVisibility();
+        }
+
+        applyVisibility();
+    </script>
 </body>
 </html>
