@@ -34,6 +34,12 @@
             "title": "お知らせ",
             "file": "news.html",
             "protected": false
+        },
+        {
+            "id": "stats",
+            "title": "訪問者統計",
+            "file": "stats.html",
+            "protected": false
         }
     ],
     "settings": {

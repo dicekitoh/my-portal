@@ -1,0 +1,15 @@
+[Unit]
+Description=Visitor Counter - Portal Visitor Tracking System
+After=network.target
+
+[Service]
+Type=simple
+User=fujinosuke
+WorkingDirectory=/home/fujinosuke/projects/portal/visitor_counter
+ExecStart=/usr/bin/python3 /home/fujinosuke/projects/portal/visitor_counter/visitor_counter.py
+Restart=on-failure
+RestartSec=5
+Environment=PYTHONUNBUFFERED=1
+
+[Install]
+WantedBy=multi-user.target
