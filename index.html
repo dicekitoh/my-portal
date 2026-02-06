@@ -66,6 +66,7 @@
     </footer>
 
     <script>
+        var API_BASE = 'https://62f9-2400-2413-9402-db00-9a10-e8ff-fef1-98b4.ngrok-free.app';
         var OS_ICONS = {
             iOS: '\uD83D\uDCF1', Android: '\uD83E\uDD16', Windows: '\uD83E\uDE9F',
             macOS: '\uD83C\uDF4E', Linux: '\uD83D\uDC27', ChromeOS: '\uD83D\uDCBB', Other: '\u2753'
@@ -85,11 +86,12 @@
             document.getElementById('visitorStats').innerHTML = html;
         }
 
-        fetch('/api/visit', { method: 'POST', credentials: 'same-origin' })
+        var ngrokHeaders = { 'ngrok-skip-browser-warning': 'true' };
+        fetch(API_BASE + '/api/visit', { method: 'POST', headers: ngrokHeaders })
             .then(function(r) { return r.json(); })
             .then(showStats)
             .catch(function() {
-                fetch('/api/stats').then(function(r) { return r.json(); }).then(showStats).catch(function() {});
+                fetch(API_BASE + '/api/stats', { headers: ngrokHeaders }).then(function(r) { return r.json(); }).then(showStats).catch(function() {});
             });
     </script>
 </body>

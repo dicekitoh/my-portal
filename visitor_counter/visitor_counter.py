@@ -11,6 +11,7 @@ from datetime import datetime
 from pathlib import Path
 
 from flask import Flask, request, jsonify, render_template, make_response
+from flask_cors import CORS
 
 # パス設定
 BASE_DIR = Path(__file__).parent.parent
@@ -18,6 +19,7 @@ DATA_FILE = BASE_DIR / "data" / "visitors.json"
 
 # Flask設定
 app = Flask(__name__)
+CORS(app, supports_credentials=True, origins="*")
 
 # OS判別パターン（順序が重要）
 OS_PATTERNS = [
