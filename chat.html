@@ -46,6 +46,56 @@
         .header-btn:hover { border-color: #999; color: #333; }
         .header-btn.active { background: #333; color: #fff; border-color: #333; }
 
+        /* APIキー設定 */
+        #apikey-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+        }
+        #apikey-overlay.hidden { display: none; }
+        .apikey-dialog {
+            background: #fff;
+            padding: 2rem;
+            border-radius: 8px;
+            max-width: 420px;
+            width: 90%;
+        }
+        .apikey-dialog h2 {
+            font-size: 1rem;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+        .apikey-dialog p {
+            font-size: 0.85rem;
+            color: #666;
+            margin-bottom: 1rem;
+        }
+        .apikey-dialog input {
+            width: 100%;
+            padding: 0.6rem 0.8rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            font-family: inherit;
+            outline: none;
+            margin-bottom: 0.75rem;
+        }
+        .apikey-dialog input:focus { border-color: #999; }
+        .apikey-dialog button {
+            padding: 0.6rem 1.2rem;
+            background: #333;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-family: inherit;
+        }
+
         /* 記憶パネル */
         #memory-panel {
             display: none;
@@ -83,6 +133,7 @@
             cursor: pointer;
             font-size: 1rem;
             padding: 0 0.25rem;
+            flex-shrink: 0;
         }
         .memory-delete-btn:hover { color: #f00; }
         .memory-add-form {
@@ -191,12 +242,22 @@
     </style>
 </head>
 <body>
+    <div id="apikey-overlay" class="hidden">
+        <div class="apikey-dialog">
+            <h2>Gemini APIキーを設定</h2>
+            <p>チャットを利用するにはGemini APIキーが必要です。キーはこのブラウザのlocalStorageに保存されます。</p>
+            <input type="password" id="apikey-input" placeholder="AIza...">
+            <button id="apikey-save-btn">保存</button>
+        </div>
+    </div>
+
     <header>
         <a href="index.html">&larr; トップ</a>
         <h1>AIチャット</h1>
         <div class="header-buttons">
             <button class="header-btn" id="memory-btn">記憶</button>
             <button class="header-btn" id="clear-log-btn">ログクリア</button>
+            <button class="header-btn" id="apikey-btn">APIキー</button>
         </div>
     </header>
     <div id="memory-panel">
@@ -216,20 +277,74 @@
     </div>
 
     <script>
+        const GEMINI_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
+        const LS_KEY_APIKEY = 'chat_gemini_apikey';
+        const LS_KEY_LOGS = 'chat_logs';
+        const LS_KEY_MEMORY = 'chat_memory';
+
         const chatArea = document.getElementById('chat-area');
         const chatForm = document.getElementById('chat-form');
         const messageInput = document.getElementById('message-input');
         const sendBtn = document.getElementById('send-btn');
         const memoryBtn = document.getElementById('memory-btn');
         const memoryPanel = document.getElementById('memory-panel');
-        const memoryList = document.getElementById('memory-list');
+        const memoryListEl = document.getElementById('memory-list');
         const memoryInput = document.getElementById('memory-input');
         const memoryAddBtn = document.getElementById('memory-add-btn');
         const clearLogBtn = document.getElementById('clear-log-btn');
+        const apikeyOverlay = document.getElementById('apikey-overlay');
+        const apikeyInput = document.getElementById('apikey-input');
+        const apikeySaveBtn = document.getElementById('apikey-save-btn');
+        const apikeyBtn = document.getElementById('apikey-btn');
 
         // 会話履歴（Gemini APIに送る用）
         const history = [];
 
+        // --- localStorage ヘルパー ---
+        function getApiKey() {
+            return localStorage.getItem(LS_KEY_APIKEY) || '';
+        }
+
+        function getLogs() {
+            try { return JSON.parse(localStorage.getItem(LS_KEY_LOGS)) || []; }
+            catch { return []; }
+        }
+
+        function saveLogs(logs) {
+            localStorage.setItem(LS_KEY_LOGS, JSON.stringify(logs));
+        }
+
+        function appendLog(role, text) {
+            const logs = getLogs();
+            logs.push({ timestamp: new Date().toISOString(), role, text });
+            saveLogs(logs);
+        }
+
+        function getMemories() {
+            try { return JSON.parse(localStorage.getItem(LS_KEY_MEMORY)) || []; }
+            catch { return []; }
+        }
+
+        function saveMemories(memories) {
+            localStorage.setItem(LS_KEY_MEMORY, JSON.stringify(memories));
+        }
+
+        // --- システムプロンプト ---
+        function buildSystemPrompt() {
+            const memories = getMemories();
+            let memText = '（まだ記憶はありません）';
+            if (memories.length > 0) {
+                memText = memories.map(m => '- ' + m.text).join('\n');
+            }
+            return `あなたは「ふじのすけ」専用のAIアシスタントです。
+親しみやすく、カジュアルな日本語で応答してください。
+丁寧すぎる敬語は不要です。友人のように話してください。
+
+以下はユーザーについて記憶している情報です。会話の中で自然に活用してください：
+${memText}`;
+        }
+
+        // --- UI ---
         function addMessage(text, role) {
             const div = document.createElement('div');
             div.className = `message ${role === 'user' ? 'user' : 'bot'}`;
@@ -268,37 +383,23 @@
         }
 
         // --- ログ復元 ---
-        async function loadLogs() {
-            try {
-                const resp = await fetch('/api/chat/logs');
-                const logs = await resp.json();
-                for (const entry of logs) {
-                    addMessage(entry.text, entry.role);
-                    history.push({ role: entry.role === 'user' ? 'user' : 'model', text: entry.text });
-                }
-            } catch (e) {
-                // ログ取得失敗は無視
+        function loadLogs() {
+            const logs = getLogs().slice(-100);
+            for (const entry of logs) {
+                addMessage(entry.text, entry.role);
+                history.push({ role: entry.role === 'user' ? 'user' : 'model', text: entry.text });
             }
         }
 
         // --- 記憶管理 ---
-        async function loadMemories() {
-            try {
-                const resp = await fetch('/api/chat/memory');
-                const memories = await resp.json();
-                renderMemories(memories);
-            } catch (e) {
-                // 取得失敗は無視
-            }
-        }
-
-        function renderMemories(memories) {
-            memoryList.innerHTML = '';
+        function renderMemories() {
+            const memories = getMemories();
+            memoryListEl.innerHTML = '';
             if (memories.length === 0) {
                 const empty = document.createElement('div');
                 empty.className = 'memory-empty';
                 empty.textContent = 'まだ記憶がありません';
-                memoryList.appendChild(empty);
+                memoryListEl.appendChild(empty);
                 return;
             }
             for (const m of memories) {
@@ -308,61 +409,71 @@
                 const btn = document.createElement('button');
                 btn.className = 'memory-delete-btn';
                 btn.textContent = '\u00d7';
-                btn.onclick = () => deleteMemory(m.id);
+                btn.onclick = () => {
+                    const mems = getMemories().filter(x => x.id !== m.id);
+                    saveMemories(mems);
+                    renderMemories();
+                };
                 li.appendChild(span);
                 li.appendChild(btn);
-                memoryList.appendChild(li);
+                memoryListEl.appendChild(li);
             }
         }
 
-        async function addMemory() {
+        function addMemoryEntry() {
             const text = memoryInput.value.trim();
             if (!text) return;
             memoryInput.value = '';
-            try {
-                await fetch('/api/chat/memory', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ text })
-                });
-                loadMemories();
-            } catch (e) {
-                alert('記憶の追加に失敗しました');
-            }
+            const memories = getMemories();
+            memories.push({
+                id: Date.now().toString(36),
+                text,
+                created_at: new Date().toISOString()
+            });
+            saveMemories(memories);
+            renderMemories();
         }
 
-        async function deleteMemory(id) {
-            try {
-                await fetch(`/api/chat/memory/${id}`, { method: 'DELETE' });
-                loadMemories();
-            } catch (e) {
-                alert('記憶の削除に失敗しました');
-            }
+        // --- APIキー ---
+        function showApikeyDialog() {
+            apikeyInput.value = getApiKey();
+            apikeyOverlay.classList.remove('hidden');
+            apikeyInput.focus();
+        }
+
+        function saveApiKey() {
+            const key = apikeyInput.value.trim();
+            if (!key) return;
+            localStorage.setItem(LS_KEY_APIKEY, key);
+            apikeyOverlay.classList.add('hidden');
+            messageInput.focus();
         }
 
         // --- イベント ---
+        apikeyBtn.addEventListener('click', showApikeyDialog);
+        apikeySaveBtn.addEventListener('click', saveApiKey);
+        apikeyInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') { e.preventDefault(); saveApiKey(); }
+        });
+
         memoryBtn.addEventListener('click', () => {
             memoryPanel.classList.toggle('open');
             memoryBtn.classList.toggle('active');
             if (memoryPanel.classList.contains('open')) {
-                loadMemories();
+                renderMemories();
             }
         });
 
-        memoryAddBtn.addEventListener('click', addMemory);
+        memoryAddBtn.addEventListener('click', addMemoryEntry);
         memoryInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') { e.preventDefault(); addMemory(); }
+            if (e.key === 'Enter') { e.preventDefault(); addMemoryEntry(); }
         });
 
-        clearLogBtn.addEventListener('click', async () => {
+        clearLogBtn.addEventListener('click', () => {
             if (!confirm('会話ログをすべてクリアしますか？')) return;
-            try {
-                await fetch('/api/chat/logs', { method: 'DELETE' });
-                chatArea.innerHTML = '';
-                history.length = 0;
-            } catch (e) {
-                alert('ログクリアに失敗しました');
-            }
+            saveLogs([]);
+            chatArea.innerHTML = '';
+            history.length = 0;
         });
 
         chatForm.addEventListener('submit', async (e) => {
@@ -370,27 +481,52 @@
             const text = messageInput.value.trim();
             if (!text) return;
 
+            const apiKey = getApiKey();
+            if (!apiKey) {
+                showApikeyDialog();
+                return;
+            }
+
             messageInput.value = '';
             sendBtn.disabled = true;
 
             addMessage(text, 'user');
             showTyping();
 
+            // Gemini API用のcontentsを構築
+            const contents = [];
+            for (const entry of history) {
+                contents.push({
+                    role: entry.role,
+                    parts: [{ text: entry.text }]
+                });
+            }
+            contents.push({ role: 'user', parts: [{ text }] });
+
+            const payload = {
+                system_instruction: { parts: [{ text: buildSystemPrompt() }] },
+                contents
+            };
+
             try {
-                const resp = await fetch('/api/chat', {
+                const resp = await fetch(`${GEMINI_URL}?key=${apiKey}`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ message: text, history: history })
+                    body: JSON.stringify(payload)
                 });
                 const data = await resp.json();
                 removeTyping();
 
-                if (data.reply) {
-                    history.push({ role: 'user', text: text });
-                    history.push({ role: 'model', text: data.reply });
-                    addMessage(data.reply, 'bot');
+                if (data.candidates && data.candidates[0]) {
+                    const reply = data.candidates[0].content.parts[0].text;
+                    history.push({ role: 'user', text });
+                    history.push({ role: 'model', text: reply });
+                    appendLog('user', text);
+                    appendLog('model', reply);
+                    addMessage(reply, 'bot');
                 } else {
-                    addMessage('エラーが発生しました: ' + (data.error || '不明なエラー'), 'bot');
+                    const errMsg = data.error?.message || '不明なエラー';
+                    addMessage('エラー: ' + errMsg, 'bot');
                 }
             } catch (err) {
                 removeTyping();
@@ -401,10 +537,13 @@
             messageInput.focus();
         });
 
-        // 初期化
-        loadLogs().then(() => {
+        // --- 初期化 ---
+        loadLogs();
+        if (!getApiKey()) {
+            showApikeyDialog();
+        } else {
             messageInput.focus();
-        });
+        }
     </script>
 </body>
 </html>
