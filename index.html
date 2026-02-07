@@ -29,18 +29,6 @@
         }
         .links a:hover { background-color: #f5f5f5; }
         footer { padding: 1rem; text-align: center; border-top: 1px solid #eee; font-size: 0.8rem; color: #999; }
-        .counter { text-align: center; padding: 1rem; color: #999; font-size: 0.85rem; }
-        .visitor-stats {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 0.6rem 1.2rem;
-            margin-top: 0.5rem;
-        }
-        .visitor-stats .os-item { white-space: nowrap; }
-        .visitor-total { font-weight: 500; color: #666; margin-bottom: 0.3rem; }
-        .stats-link { color: #aaa; text-decoration: none; font-size: 0.75rem; }
-        .stats-link:hover { color: #666; }
     </style>
 </head>
 <body>
@@ -54,45 +42,12 @@
             <a href="hours.html">営業時間</a>
             <a href="#">アクセス</a>
             <a href="private.html">Members Only</a>
+            <a href="https://jikan-rich-sapporo-diary.blogspot.com/" target="_blank">時間リッチブログ</a>
         </nav>
     </main>
-    <div class="counter">
-        <div class="visitor-total">Visitors: <span id="visitorTotal">-</span></div>
-        <div class="visitor-stats" id="visitorStats"></div>
-        <a href="stats.html" class="stats-link">詳細統計 →</a>
-    </div>
     <footer>
         <p>&copy; 2026 My Portal</p>
     </footer>
 
-    <script>
-        var API_BASE = 'https://3388-2400-2413-9402-db00-9a10-e8ff-fef1-98b4.ngrok-free.app';
-        var OS_ICONS = {
-            iOS: '\uD83D\uDCF1', Android: '\uD83E\uDD16', Windows: '\uD83E\uDE9F',
-            macOS: '\uD83C\uDF4E', Linux: '\uD83D\uDC27', ChromeOS: '\uD83D\uDCBB', Other: '\u2753'
-        };
-        var OS_ORDER = ['iOS', 'Android', 'Windows', 'macOS', 'Linux', 'ChromeOS', 'Other'];
-
-        function showStats(data) {
-            document.getElementById('visitorTotal').textContent = data.total || 0;
-            var byOs = data.by_os || {};
-            var html = '';
-            OS_ORDER.forEach(function(os) {
-                var count = byOs[os] || 0;
-                if (count > 0) {
-                    html += '<span class="os-item">' + (OS_ICONS[os] || '') + ' ' + os + ': ' + count + '</span>';
-                }
-            });
-            document.getElementById('visitorStats').innerHTML = html;
-        }
-
-        var ngrokHeaders = { 'ngrok-skip-browser-warning': 'true' };
-        fetch(API_BASE + '/api/visit', { method: 'POST', headers: ngrokHeaders })
-            .then(function(r) { return r.json(); })
-            .then(showStats)
-            .catch(function() {
-                fetch(API_BASE + '/api/stats', { headers: ngrokHeaders }).then(function(r) { return r.json(); }).then(showStats).catch(function() {});
-            });
-    </script>
 </body>
 </html>
