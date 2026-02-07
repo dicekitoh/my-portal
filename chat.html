@@ -15,7 +15,7 @@
             flex-direction: column;
         }
         header {
-            padding: 1rem 2rem;
+            padding: 0.75rem 1.5rem;
             border-bottom: 1px solid #eee;
             display: flex;
             align-items: center;
@@ -27,523 +27,172 @@
             font-size: 0.9rem;
         }
         header a:hover { color: #333; }
-        header h1 { font-size: 1.2rem; font-weight: 300; }
+        header h1 { font-size: 1.1rem; font-weight: 300; }
         .header-buttons {
             margin-left: auto;
             display: flex;
             gap: 0.5rem;
         }
         .header-btn {
-            padding: 0.4rem 0.8rem;
+            padding: 0.3rem 0.7rem;
             background: none;
             border: 1px solid #ddd;
             border-radius: 4px;
             cursor: pointer;
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             color: #666;
             font-family: inherit;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
         }
         .header-btn:hover { border-color: #999; color: #333; }
         .header-btn.active { background: #333; color: #fff; border-color: #333; }
-
-        /* APIキー設定 */
-        #apikey-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.3);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 100;
-        }
-        #apikey-overlay.hidden { display: none; }
-        .apikey-dialog {
-            background: #fff;
-            padding: 2rem;
-            border-radius: 8px;
-            max-width: 420px;
-            width: 90%;
-        }
-        .apikey-dialog h2 {
-            font-size: 1rem;
-            font-weight: 500;
-            margin-bottom: 0.5rem;
-        }
-        .apikey-dialog p {
-            font-size: 0.85rem;
-            color: #666;
-            margin-bottom: 1rem;
-        }
-        .apikey-dialog input {
-            width: 100%;
-            padding: 0.6rem 0.8rem;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 0.9rem;
-            font-family: inherit;
-            outline: none;
-            margin-bottom: 0.75rem;
-        }
-        .apikey-dialog input:focus { border-color: #999; }
-        .apikey-dialog button {
-            padding: 0.6rem 1.2rem;
-            background: #333;
-            color: #fff;
+        #chat-frame {
+            flex: 1;
             border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 0.9rem;
-            font-family: inherit;
+            width: 100%;
         }
-
-        /* 記憶パネル */
-        #memory-panel {
+        /* フォールバック */
+        #fallback {
             display: none;
-            border-bottom: 1px solid #eee;
-            padding: 1rem;
-            max-width: 800px;
-            margin: 0 auto;
-            width: 100%;
-            background: #fafafa;
-        }
-        #memory-panel.open { display: block; }
-        #memory-panel h2 {
-            font-size: 0.9rem;
-            font-weight: 500;
-            margin-bottom: 0.75rem;
-            color: #666;
-        }
-        .memory-list {
-            list-style: none;
-            margin-bottom: 0.75rem;
-        }
-        .memory-list li {
-            display: flex;
+            flex: 1;
+            justify-content: center;
             align-items: center;
-            justify-content: space-between;
-            padding: 0.4rem 0;
-            border-bottom: 1px solid #eee;
-            font-size: 0.9rem;
+            padding: 2rem;
         }
-        .memory-list li:last-child { border-bottom: none; }
-        .memory-delete-btn {
-            background: none;
-            border: none;
-            color: #c00;
-            cursor: pointer;
-            font-size: 1rem;
-            padding: 0 0.25rem;
-            flex-shrink: 0;
+        .fallback-content {
+            text-align: center;
+            max-width: 500px;
         }
-        .memory-delete-btn:hover { color: #f00; }
-        .memory-add-form {
-            display: flex;
-            gap: 0.5rem;
+        .fallback-content p {
+            color: #666;
+            margin-bottom: 1.5rem;
+            line-height: 1.6;
+            font-size: 0.95rem;
         }
-        .memory-add-form input {
-            flex: 1;
-            padding: 0.4rem 0.6rem;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 0.85rem;
-            font-family: inherit;
-            outline: none;
-        }
-        .memory-add-form input:focus { border-color: #999; }
-        .memory-add-form button {
-            padding: 0.4rem 0.8rem;
-            background: #333;
-            color: #fff;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 0.85rem;
-            font-family: inherit;
-        }
-        .memory-empty {
-            color: #999;
-            font-size: 0.85rem;
-            margin-bottom: 0.75rem;
-        }
-
-        #chat-area {
-            flex: 1;
-            overflow-y: auto;
-            padding: 1rem;
-            max-width: 800px;
-            margin: 0 auto;
-            width: 100%;
-        }
-        .message {
-            margin-bottom: 1rem;
+        .service-links {
             display: flex;
             flex-direction: column;
+            gap: 0.75rem;
         }
-        .message.user { align-items: flex-end; }
-        .message.bot { align-items: flex-start; }
-        .message .bubble {
-            max-width: 80%;
-            padding: 0.75rem 1rem;
-            border-radius: 12px;
-            line-height: 1.6;
-            white-space: pre-wrap;
-            word-break: break-word;
-        }
-        .message.user .bubble {
-            background-color: #333;
-            color: #fff;
-        }
-        .message.bot .bubble {
-            background-color: #f0f0f0;
-            color: #333;
-        }
-        .message .label {
-            font-size: 0.7rem;
-            color: #999;
-            margin-bottom: 0.25rem;
-        }
-        .typing .bubble {
-            color: #999;
-            font-style: italic;
-        }
-        #input-area {
-            border-top: 1px solid #eee;
-            padding: 1rem;
-            max-width: 800px;
-            margin: 0 auto;
-            width: 100%;
-        }
-        #input-area form {
+        .service-link {
             display: flex;
-            gap: 0.5rem;
-        }
-        #input-area input {
-            flex: 1;
-            padding: 0.75rem 1rem;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 1rem 1.5rem;
             border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 1rem;
-            outline: none;
-            font-family: inherit;
+            border-radius: 8px;
+            text-decoration: none;
+            color: #333;
+            transition: border-color 0.2s;
         }
-        #input-area input:focus { border-color: #999; }
-        #input-area button {
-            padding: 0.75rem 1.5rem;
-            background-color: #333;
-            color: #fff;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
+        .service-link:hover { border-color: #999; }
+        .service-link .name {
+            font-weight: 500;
             font-size: 1rem;
-            font-family: inherit;
         }
-        #input-area button:hover { background-color: #555; }
-        #input-area button:disabled { background-color: #ccc; cursor: not-allowed; }
+        .service-link .desc {
+            font-size: 0.8rem;
+            color: #999;
+        }
     </style>
 </head>
 <body>
-    <div id="apikey-overlay" class="hidden">
-        <div class="apikey-dialog">
-            <h2>Gemini APIキーを設定</h2>
-            <p>チャットを利用するにはGemini APIキーが必要です。キーはこのブラウザのlocalStorageに保存されます。</p>
-            <input type="password" id="apikey-input" placeholder="AIza...">
-            <button id="apikey-save-btn">保存</button>
-        </div>
-    </div>
-
     <header>
         <a href="index.html">&larr; トップ</a>
         <h1>AIチャット</h1>
         <div class="header-buttons">
-            <button class="header-btn" id="memory-btn">記憶</button>
-            <button class="header-btn" id="clear-log-btn">ログクリア</button>
-            <button class="header-btn" id="apikey-btn">APIキー</button>
+            <a class="header-btn" id="open-btn" href="https://gemini.google.com/app" target="_blank" rel="noopener">別タブで開く</a>
+            <button class="header-btn" id="switch-btn">切替</button>
         </div>
     </header>
-    <div id="memory-panel">
-        <h2>記憶（AIが覚えていること）</h2>
-        <ul class="memory-list" id="memory-list"></ul>
-        <div class="memory-add-form">
-            <input type="text" id="memory-input" placeholder="記憶を追加（例：好きな食べ物はカレー）">
-            <button id="memory-add-btn">追加</button>
+
+    <iframe id="chat-frame" src="https://gemini.google.com/app" allow="clipboard-write"></iframe>
+
+    <div id="fallback">
+        <div class="fallback-content">
+            <p>埋め込みがブロックされています。<br>以下のリンクからAIチャットを利用できます。</p>
+            <div class="service-links">
+                <a class="service-link" href="https://gemini.google.com/app" target="_blank" rel="noopener">
+                    <div>
+                        <div class="name">Gemini</div>
+                        <div class="desc">Google AI - 無料で利用可能</div>
+                    </div>
+                </a>
+                <a class="service-link" href="https://claude.ai/new" target="_blank" rel="noopener">
+                    <div>
+                        <div class="name">Claude</div>
+                        <div class="desc">Anthropic AI</div>
+                    </div>
+                </a>
+                <a class="service-link" href="https://chatgpt.com/" target="_blank" rel="noopener">
+                    <div>
+                        <div class="name">ChatGPT</div>
+                        <div class="desc">OpenAI</div>
+                    </div>
+                </a>
+            </div>
         </div>
-    </div>
-    <div id="chat-area"></div>
-    <div id="input-area">
-        <form id="chat-form">
-            <input type="text" id="message-input" placeholder="メッセージを入力..." autocomplete="off">
-            <button type="submit" id="send-btn">送信</button>
-        </form>
     </div>
 
     <script>
-        const GEMINI_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
-        const LS_KEY_APIKEY = 'chat_gemini_apikey';
-        const LS_KEY_LOGS = 'chat_logs';
-        const LS_KEY_MEMORY = 'chat_memory';
+        const frame = document.getElementById('chat-frame');
+        const fallback = document.getElementById('fallback');
+        const switchBtn = document.getElementById('switch-btn');
+        const openBtn = document.getElementById('open-btn');
 
-        const chatArea = document.getElementById('chat-area');
-        const chatForm = document.getElementById('chat-form');
-        const messageInput = document.getElementById('message-input');
-        const sendBtn = document.getElementById('send-btn');
-        const memoryBtn = document.getElementById('memory-btn');
-        const memoryPanel = document.getElementById('memory-panel');
-        const memoryListEl = document.getElementById('memory-list');
-        const memoryInput = document.getElementById('memory-input');
-        const memoryAddBtn = document.getElementById('memory-add-btn');
-        const clearLogBtn = document.getElementById('clear-log-btn');
-        const apikeyOverlay = document.getElementById('apikey-overlay');
-        const apikeyInput = document.getElementById('apikey-input');
-        const apikeySaveBtn = document.getElementById('apikey-save-btn');
-        const apikeyBtn = document.getElementById('apikey-btn');
+        const services = [
+            { name: 'Gemini', url: 'https://gemini.google.com/app' },
+            { name: 'Claude', url: 'https://claude.ai/new' },
+            { name: 'ChatGPT', url: 'https://chatgpt.com/' }
+        ];
+        let currentIndex = 0;
 
-        // 会話履歴（Gemini APIに送る用）
-        const history = [];
-
-        // --- localStorage ヘルパー ---
-        function getApiKey() {
-            return localStorage.getItem(LS_KEY_APIKEY) || '';
-        }
-
-        function getLogs() {
-            try { return JSON.parse(localStorage.getItem(LS_KEY_LOGS)) || []; }
-            catch { return []; }
-        }
-
-        function saveLogs(logs) {
-            localStorage.setItem(LS_KEY_LOGS, JSON.stringify(logs));
-        }
-
-        function appendLog(role, text) {
-            const logs = getLogs();
-            logs.push({ timestamp: new Date().toISOString(), role, text });
-            saveLogs(logs);
-        }
-
-        function getMemories() {
-            try { return JSON.parse(localStorage.getItem(LS_KEY_MEMORY)) || []; }
-            catch { return []; }
-        }
-
-        function saveMemories(memories) {
-            localStorage.setItem(LS_KEY_MEMORY, JSON.stringify(memories));
-        }
-
-        // --- システムプロンプト ---
-        function buildSystemPrompt() {
-            const memories = getMemories();
-            let memText = '（まだ記憶はありません）';
-            if (memories.length > 0) {
-                memText = memories.map(m => '- ' + m.text).join('\n');
-            }
-            return `あなたは「ふじのすけ」専用のAIアシスタントです。
-親しみやすく、カジュアルな日本語で応答してください。
-丁寧すぎる敬語は不要です。友人のように話してください。
-
-以下はユーザーについて記憶している情報です。会話の中で自然に活用してください：
-${memText}`;
-        }
-
-        // --- UI ---
-        function addMessage(text, role) {
-            const div = document.createElement('div');
-            div.className = `message ${role === 'user' ? 'user' : 'bot'}`;
-            const label = document.createElement('div');
-            label.className = 'label';
-            label.textContent = role === 'user' ? 'あなた' : 'AI';
-            const bubble = document.createElement('div');
-            bubble.className = 'bubble';
-            bubble.textContent = text;
-            div.appendChild(label);
-            div.appendChild(bubble);
-            chatArea.appendChild(div);
-            chatArea.scrollTop = chatArea.scrollHeight;
-            return div;
-        }
-
-        function showTyping() {
-            const div = document.createElement('div');
-            div.className = 'message bot typing';
-            div.id = 'typing-indicator';
-            const label = document.createElement('div');
-            label.className = 'label';
-            label.textContent = 'AI';
-            const bubble = document.createElement('div');
-            bubble.className = 'bubble';
-            bubble.textContent = '考え中...';
-            div.appendChild(label);
-            div.appendChild(bubble);
-            chatArea.appendChild(div);
-            chatArea.scrollTop = chatArea.scrollHeight;
-        }
-
-        function removeTyping() {
-            const el = document.getElementById('typing-indicator');
-            if (el) el.remove();
-        }
-
-        // --- ログ復元 ---
-        function loadLogs() {
-            const logs = getLogs().slice(-100);
-            for (const entry of logs) {
-                addMessage(entry.text, entry.role);
-                history.push({ role: entry.role === 'user' ? 'user' : 'model', text: entry.text });
-            }
-        }
-
-        // --- 記憶管理 ---
-        function renderMemories() {
-            const memories = getMemories();
-            memoryListEl.innerHTML = '';
-            if (memories.length === 0) {
-                const empty = document.createElement('div');
-                empty.className = 'memory-empty';
-                empty.textContent = 'まだ記憶がありません';
-                memoryListEl.appendChild(empty);
-                return;
-            }
-            for (const m of memories) {
-                const li = document.createElement('li');
-                const span = document.createElement('span');
-                span.textContent = m.text;
-                const btn = document.createElement('button');
-                btn.className = 'memory-delete-btn';
-                btn.textContent = '\u00d7';
-                btn.onclick = () => {
-                    const mems = getMemories().filter(x => x.id !== m.id);
-                    saveMemories(mems);
-                    renderMemories();
-                };
-                li.appendChild(span);
-                li.appendChild(btn);
-                memoryListEl.appendChild(li);
-            }
-        }
-
-        function addMemoryEntry() {
-            const text = memoryInput.value.trim();
-            if (!text) return;
-            memoryInput.value = '';
-            const memories = getMemories();
-            memories.push({
-                id: Date.now().toString(36),
-                text,
-                created_at: new Date().toISOString()
-            });
-            saveMemories(memories);
-            renderMemories();
-        }
-
-        // --- APIキー ---
-        function showApikeyDialog() {
-            apikeyInput.value = getApiKey();
-            apikeyOverlay.classList.remove('hidden');
-            apikeyInput.focus();
-        }
-
-        function saveApiKey() {
-            const key = apikeyInput.value.trim();
-            if (!key) return;
-            localStorage.setItem(LS_KEY_APIKEY, key);
-            apikeyOverlay.classList.add('hidden');
-            messageInput.focus();
-        }
-
-        // --- イベント ---
-        apikeyBtn.addEventListener('click', showApikeyDialog);
-        apikeySaveBtn.addEventListener('click', saveApiKey);
-        apikeyInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') { e.preventDefault(); saveApiKey(); }
-        });
-
-        memoryBtn.addEventListener('click', () => {
-            memoryPanel.classList.toggle('open');
-            memoryBtn.classList.toggle('active');
-            if (memoryPanel.classList.contains('open')) {
-                renderMemories();
-            }
-        });
-
-        memoryAddBtn.addEventListener('click', addMemoryEntry);
-        memoryInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') { e.preventDefault(); addMemoryEntry(); }
-        });
-
-        clearLogBtn.addEventListener('click', () => {
-            if (!confirm('会話ログをすべてクリアしますか？')) return;
-            saveLogs([]);
-            chatArea.innerHTML = '';
-            history.length = 0;
-        });
-
-        chatForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const text = messageInput.value.trim();
-            if (!text) return;
-
-            const apiKey = getApiKey();
-            if (!apiKey) {
-                showApikeyDialog();
-                return;
-            }
-
-            messageInput.value = '';
-            sendBtn.disabled = true;
-
-            addMessage(text, 'user');
-            showTyping();
-
-            // Gemini API用のcontentsを構築
-            const contents = [];
-            for (const entry of history) {
-                contents.push({
-                    role: entry.role,
-                    parts: [{ text: entry.text }]
-                });
-            }
-            contents.push({ role: 'user', parts: [{ text }] });
-
-            const payload = {
-                system_instruction: { parts: [{ text: buildSystemPrompt() }] },
-                contents
-            };
-
+        // iframe読み込みエラー検出
+        // X-Frame-Options ブロック時は load イベントが発火しても中身が空
+        let loaded = false;
+        frame.addEventListener('load', () => {
+            // iframeが読み込まれたが、クロスオリジンでアクセスできない場合を検出
             try {
-                const resp = await fetch(`${GEMINI_URL}?key=${apiKey}`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-                const data = await resp.json();
-                removeTyping();
-
-                if (data.candidates && data.candidates[0]) {
-                    const reply = data.candidates[0].content.parts[0].text;
-                    history.push({ role: 'user', text });
-                    history.push({ role: 'model', text: reply });
-                    appendLog('user', text);
-                    appendLog('model', reply);
-                    addMessage(reply, 'bot');
+                // 同一オリジンならアクセス可能、クロスオリジンでブロックされたら例外
+                const doc = frame.contentDocument;
+                if (doc && doc.body && doc.body.innerHTML === '') {
+                    showFallback();
                 } else {
-                    const errMsg = data.error?.message || '不明なエラー';
-                    addMessage('エラー: ' + errMsg, 'bot');
+                    loaded = true;
                 }
-            } catch (err) {
-                removeTyping();
-                addMessage('通信エラーが発生しました。', 'bot');
+            } catch (e) {
+                // クロスオリジン = 正常に読み込まれた可能性あり
+                loaded = true;
             }
-
-            sendBtn.disabled = false;
-            messageInput.focus();
         });
 
-        // --- 初期化 ---
-        loadLogs();
-        if (!getApiKey()) {
-            showApikeyDialog();
-        } else {
-            messageInput.focus();
+        // 3秒後にもコンテンツが表示されていなければフォールバック
+        setTimeout(() => {
+            if (!loaded) showFallback();
+        }, 3000);
+
+        function showFallback() {
+            frame.style.display = 'none';
+            fallback.style.display = 'flex';
         }
+
+        // 切替ボタン
+        switchBtn.addEventListener('click', () => {
+            currentIndex = (currentIndex + 1) % services.length;
+            const svc = services[currentIndex];
+            frame.src = svc.url;
+            openBtn.href = svc.url;
+            switchBtn.textContent = svc.name + ' に切替中...';
+            loaded = false;
+            frame.style.display = '';
+            fallback.style.display = 'none';
+            setTimeout(() => {
+                switchBtn.textContent = '切替';
+                if (!loaded) showFallback();
+            }, 3000);
+        });
     </script>
 </body>
 </html>
