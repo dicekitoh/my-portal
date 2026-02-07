@@ -10,6 +10,16 @@
             "memo": "煙が少ない卓上型ファイヤーピット。ペレットまたは木材燃料。ステンレススチール製、トラベルバッグ付属",
             "purchased": false,
             "createdAt": "2026-02-07T12:00:00"
+        },
+        {
+            "id": "wish-20260207-12month-inspection",
+            "name": "マイカー12か月点検",
+            "price": null,
+            "url": "https://sale.naoiauto.jp/blog/10190/",
+            "category": "車",
+            "memo": null,
+            "purchased": false,
+            "createdAt": "2026-02-07T13:00:00"
         }
     ]
 }
