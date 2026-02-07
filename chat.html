@@ -15,71 +15,33 @@
             flex-direction: column;
         }
         header {
-            padding: 0.75rem 1.5rem;
+            padding: 1rem 2rem;
             border-bottom: 1px solid #eee;
             display: flex;
             align-items: center;
             gap: 1rem;
         }
-        header a {
-            text-decoration: none;
-            color: #999;
-            font-size: 0.9rem;
-        }
+        header a { text-decoration: none; color: #999; font-size: 0.9rem; }
         header a:hover { color: #333; }
-        header h1 { font-size: 1.1rem; font-weight: 300; }
-        .header-buttons {
-            margin-left: auto;
+        header h1 { font-size: 1.2rem; font-weight: 300; }
+        main {
+            flex: 1;
             display: flex;
-            gap: 0.5rem;
-        }
-        .header-btn {
-            padding: 0.3rem 0.7rem;
-            background: none;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 0.75rem;
-            color: #666;
-            font-family: inherit;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-        }
-        .header-btn:hover { border-color: #999; color: #333; }
-        .header-btn.active { background: #333; color: #fff; border-color: #333; }
-        #chat-frame {
-            flex: 1;
-            border: none;
-            width: 100%;
-        }
-        /* フォールバック */
-        #fallback {
-            display: none;
-            flex: 1;
             justify-content: center;
             align-items: center;
             padding: 2rem;
         }
-        .fallback-content {
-            text-align: center;
-            max-width: 500px;
-        }
-        .fallback-content p {
+        .content { max-width: 480px; width: 100%; }
+        .content p {
             color: #666;
             margin-bottom: 1.5rem;
             line-height: 1.6;
             font-size: 0.95rem;
+            text-align: center;
         }
-        .service-links {
-            display: flex;
-            flex-direction: column;
-            gap: 0.75rem;
-        }
-        .service-link {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
+        .services { display: flex; flex-direction: column; gap: 0.75rem; }
+        .services a {
+            display: block;
             padding: 1rem 1.5rem;
             border: 1px solid #ddd;
             border-radius: 8px;
@@ -87,112 +49,34 @@
             color: #333;
             transition: border-color 0.2s;
         }
-        .service-link:hover { border-color: #999; }
-        .service-link .name {
-            font-weight: 500;
-            font-size: 1rem;
-        }
-        .service-link .desc {
-            font-size: 0.8rem;
-            color: #999;
-        }
+        .services a:hover { border-color: #999; }
+        .services .name { font-weight: 500; font-size: 1rem; }
+        .services .desc { font-size: 0.8rem; color: #999; margin-top: 0.2rem; }
     </style>
 </head>
 <body>
     <header>
         <a href="index.html">&larr; トップ</a>
         <h1>AIチャット</h1>
-        <div class="header-buttons">
-            <a class="header-btn" id="open-btn" href="https://gemini.google.com/app" target="_blank" rel="noopener">別タブで開く</a>
-            <button class="header-btn" id="switch-btn">切替</button>
-        </div>
     </header>
-
-    <iframe id="chat-frame" src="https://gemini.google.com/app" allow="clipboard-write"></iframe>
-
-    <div id="fallback">
-        <div class="fallback-content">
-            <p>埋め込みがブロックされています。<br>以下のリンクからAIチャットを利用できます。</p>
-            <div class="service-links">
-                <a class="service-link" href="https://gemini.google.com/app" target="_blank" rel="noopener">
-                    <div>
-                        <div class="name">Gemini</div>
-                        <div class="desc">Google AI - 無料で利用可能</div>
-                    </div>
+    <main>
+        <div class="content">
+            <p>AIチャットサービスを選んでください</p>
+            <div class="services">
+                <a href="https://gemini.google.com/app" target="_blank" rel="noopener">
+                    <div class="name">Gemini</div>
+                    <div class="desc">Google AI - 無料で利用可能</div>
                 </a>
-                <a class="service-link" href="https://claude.ai/new" target="_blank" rel="noopener">
-                    <div>
-                        <div class="name">Claude</div>
-                        <div class="desc">Anthropic AI</div>
-                    </div>
+                <a href="https://claude.ai/new" target="_blank" rel="noopener">
+                    <div class="name">Claude</div>
+                    <div class="desc">Anthropic AI</div>
                 </a>
-                <a class="service-link" href="https://chatgpt.com/" target="_blank" rel="noopener">
-                    <div>
-                        <div class="name">ChatGPT</div>
-                        <div class="desc">OpenAI</div>
-                    </div>
+                <a href="https://chatgpt.com/" target="_blank" rel="noopener">
+                    <div class="name">ChatGPT</div>
+                    <div class="desc">OpenAI</div>
                 </a>
             </div>
         </div>
-    </div>
-
-    <script>
-        const frame = document.getElementById('chat-frame');
-        const fallback = document.getElementById('fallback');
-        const switchBtn = document.getElementById('switch-btn');
-        const openBtn = document.getElementById('open-btn');
-
-        const services = [
-            { name: 'Gemini', url: 'https://gemini.google.com/app' },
-            { name: 'Claude', url: 'https://claude.ai/new' },
-            { name: 'ChatGPT', url: 'https://chatgpt.com/' }
-        ];
-        let currentIndex = 0;
-
-        // iframe読み込みエラー検出
-        // X-Frame-Options ブロック時は load イベントが発火しても中身が空
-        let loaded = false;
-        frame.addEventListener('load', () => {
-            // iframeが読み込まれたが、クロスオリジンでアクセスできない場合を検出
-            try {
-                // 同一オリジンならアクセス可能、クロスオリジンでブロックされたら例外
-                const doc = frame.contentDocument;
-                if (doc && doc.body && doc.body.innerHTML === '') {
-                    showFallback();
-                } else {
-                    loaded = true;
-                }
-            } catch (e) {
-                // クロスオリジン = 正常に読み込まれた可能性あり
-                loaded = true;
-            }
-        });
-
-        // 3秒後にもコンテンツが表示されていなければフォールバック
-        setTimeout(() => {
-            if (!loaded) showFallback();
-        }, 3000);
-
-        function showFallback() {
-            frame.style.display = 'none';
-            fallback.style.display = 'flex';
-        }
-
-        // 切替ボタン
-        switchBtn.addEventListener('click', () => {
-            currentIndex = (currentIndex + 1) % services.length;
-            const svc = services[currentIndex];
-            frame.src = svc.url;
-            openBtn.href = svc.url;
-            switchBtn.textContent = svc.name + ' に切替中...';
-            loaded = false;
-            frame.style.display = '';
-            fallback.style.display = 'none';
-            setTimeout(() => {
-                switchBtn.textContent = '切替';
-                if (!loaded) showFallback();
-            }, 3000);
-        });
-    </script>
+    </main>
 </body>
 </html>
