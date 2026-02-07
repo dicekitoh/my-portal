@@ -43,7 +43,7 @@
         },
         {
             "id": "wishlist",
-            "title": "ほしいものリスト",
+            "title": "ほしいもの・したいことリスト",
             "file": "wishlist.html",
             "protected": false
         }
