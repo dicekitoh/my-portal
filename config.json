@@ -46,6 +46,12 @@
             "title": "ほしいもの・したいことリスト",
             "file": "wishlist.html",
             "protected": false
+        },
+        {
+            "id": "chat",
+            "title": "AIチャット",
+            "file": "chat.html",
+            "protected": false
         }
     ],
     "settings": {

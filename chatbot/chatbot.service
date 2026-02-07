@@ -1,0 +1,16 @@
+[Unit]
+Description=Chatbot - Gemini API Proxy for Portal
+After=network.target
+
+[Service]
+Type=simple
+User=fujinosuke
+WorkingDirectory=/home/fujinosuke/projects/portal/chatbot
+ExecStart=/usr/bin/python3 /home/fujinosuke/projects/portal/chatbot/chatbot.py
+Restart=on-failure
+RestartSec=5
+Environment=PYTHONUNBUFFERED=1
+EnvironmentFile=/home/fujinosuke/.env.chatbot
+
+[Install]
+WantedBy=multi-user.target
