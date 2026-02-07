@@ -40,6 +40,12 @@
             "title": "訪問者統計",
             "file": "stats.html",
             "protected": false
+        },
+        {
+            "id": "wishlist",
+            "title": "ほしいものリスト",
+            "file": "wishlist.html",
+            "protected": false
         }
     ],
     "settings": {

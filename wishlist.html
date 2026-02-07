@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ほしいものリスト - My Portal</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Hiragino Sans", sans-serif;
+            background-color: #ffffff;
+            color: #333;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        header { padding: 2rem; text-align: center; border-bottom: 1px solid #eee; }
+        header h1 { font-size: 1.8rem; font-weight: 300; }
+        main { flex: 1; padding: 2rem; max-width: 800px; margin: 0 auto; width: 100%; }
+        footer { padding: 1rem; text-align: center; border-top: 1px solid #eee; font-size: 0.8rem; color: #999; }
+        .back-link { display: block; text-align: center; margin-top: 2rem; color: #666; text-decoration: none; }
+        .back-link:hover { color: #333; }
+
+        /* 追加フォーム */
+        .add-section {
+            background: #f9f9f9;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .add-section h2 {
+            font-size: 1rem;
+            font-weight: 500;
+            margin-bottom: 1rem;
+            color: #555;
+        }
+        .form-row {
+            display: flex;
+            gap: 0.8rem;
+            margin-bottom: 0.8rem;
+            flex-wrap: wrap;
+        }
+        .form-row input, .form-row select {
+            flex: 1;
+            min-width: 0;
+            padding: 0.6rem 0.8rem;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            font-family: inherit;
+            outline: none;
+            background: #fff;
+        }
+        .form-row input:focus, .form-row select:focus { border-color: #888; }
+        .form-row input.name-input { flex: 2; }
+        .form-row input.price-input { flex: 1; max-width: 160px; }
+        .form-row input.url-input { flex: 3; }
+        .form-row select { flex: 0 0 auto; width: 120px; }
+        .add-btn {
+            background: #333;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            padding: 0.6rem 1.5rem;
+            font-size: 0.9rem;
+            cursor: pointer;
+            font-family: inherit;
+        }
+        .add-btn:hover { background: #555; }
+
+        /* フィルター */
+        .filter-bar {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .filter-bar span {
+            font-size: 0.85rem;
+            color: #888;
+            margin-right: 0.3rem;
+        }
+        .filter-chip {
+            padding: 0.3rem 0.8rem;
+            border: 1px solid #ddd;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            background: #fff;
+            color: #666;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+        .filter-chip:hover { border-color: #999; }
+        .filter-chip.active { background: #333; color: #fff; border-color: #333; }
+
+        /* 合計 */
+        .summary {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding: 0.8rem 1rem;
+            background: #f9f9f9;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            color: #666;
+        }
+        .summary .total-price { font-weight: 600; color: #333; font-size: 1.05rem; }
+
+        /* リストアイテム */
+        .wish-list { list-style: none; }
+        .wish-item {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            padding: 1rem 1.2rem;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            margin-bottom: 0.8rem;
+            transition: all 0.2s;
+        }
+        .wish-item:hover { border-color: #ccc; }
+        .wish-item.purchased {
+            opacity: 0.5;
+            background: #fafafa;
+        }
+        .wish-item.purchased .item-name { text-decoration: line-through; }
+
+        .item-check {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #ccc;
+            border-radius: 50%;
+            cursor: pointer;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            background: #fff;
+        }
+        .item-check:hover { border-color: #27ae60; }
+        .item-check.checked {
+            background: #27ae60;
+            border-color: #27ae60;
+            color: #fff;
+            font-size: 0.7rem;
+        }
+
+        .item-body { flex: 1; min-width: 0; }
+        .item-name {
+            font-size: 0.95rem;
+            margin-bottom: 0.2rem;
+            word-break: break-word;
+        }
+        .item-name a { color: #1a73e8; text-decoration: none; }
+        .item-name a:hover { text-decoration: underline; }
+        .item-meta {
+            font-size: 0.8rem;
+            color: #999;
+            display: flex;
+            gap: 0.8rem;
+            flex-wrap: wrap;
+        }
+
+        .priority-badge {
+            display: inline-block;
+            padding: 0.15rem 0.5rem;
+            border-radius: 10px;
+            font-size: 0.7rem;
+            font-weight: 500;
+        }
+        .priority-high { background: #fdecea; color: #c0392b; }
+        .priority-medium { background: #fff8e1; color: #e67e22; }
+        .priority-low { background: #e8f5e9; color: #27ae60; }
+
+        .item-price {
+            font-size: 0.95rem;
+            font-weight: 500;
+            color: #333;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .item-delete {
+            background: none;
+            border: none;
+            color: #ccc;
+            font-size: 1.1rem;
+            cursor: pointer;
+            padding: 0.2rem;
+            flex-shrink: 0;
+            line-height: 1;
+        }
+        .item-delete:hover { color: #e74c3c; }
+
+        .empty-msg {
+            text-align: center;
+            color: #bbb;
+            padding: 3rem 1rem;
+            font-size: 0.95rem;
+        }
+
+        @media (max-width: 600px) {
+            .form-row { flex-direction: column; }
+            .form-row input, .form-row select { width: 100%; max-width: none; }
+            .wish-item { flex-wrap: wrap; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>ほしいものリスト</h1>
+    </header>
+    <main>
+        <!-- 追加フォーム -->
+        <div class="add-section">
+            <h2>アイテムを追加</h2>
+            <div class="form-row">
+                <input type="text" class="name-input" id="itemName" placeholder="商品名">
+                <input type="number" class="price-input" id="itemPrice" placeholder="価格（円）" min="0">
+            </div>
+            <div class="form-row">
+                <input type="url" class="url-input" id="itemUrl" placeholder="URL（任意）">
+                <select id="itemPriority">
+                    <option value="medium">普通</option>
+                    <option value="high">高い</option>
+                    <option value="low">低い</option>
+                </select>
+                <select id="itemCategory">
+                    <option value="その他">その他</option>
+                    <option value="ガジェット">ガジェット</option>
+                    <option value="家電">家電</option>
+                    <option value="車">車</option>
+                    <option value="ファッション">ファッション</option>
+                    <option value="食品">食品</option>
+                    <option value="本">本</option>
+                    <option value="趣味">趣味</option>
+                </select>
+            </div>
+            <div class="form-row">
+                <input type="text" id="itemMemo" placeholder="メモ（任意）" style="flex:1;">
+                <button class="add-btn" onclick="addItem()">追加</button>
+            </div>
+        </div>
+
+        <!-- フィルター -->
+        <div class="filter-bar">
+            <span>表示:</span>
+            <button class="filter-chip active" data-filter="all" onclick="setFilter('all', this)">すべて</button>
+            <button class="filter-chip" data-filter="pending" onclick="setFilter('pending', this)">未購入</button>
+            <button class="filter-chip" data-filter="purchased" onclick="setFilter('purchased', this)">購入済み</button>
+        </div>
+
+        <!-- 合計 -->
+        <div class="summary">
+            <span id="itemCount">0 件</span>
+            <span class="total-price" id="totalPrice">合計: ¥0</span>
+        </div>
+
+        <!-- リスト -->
+        <ul class="wish-list" id="wishList"></ul>
+
+        <a href="index.html" class="back-link">&larr; トップに戻る</a>
+    </main>
+    <footer>
+        <p>&copy; 2026 My Portal</p>
+    </footer>
+
+    <script>
+        var STORAGE_KEY = 'portal_wishlist';
+        var JSON_URL = 'data/wishlist.json';
+        var currentFilter = 'all';
+        var allItems = [];
+
+        // localStorageからアイテム取得
+        function getLocalItems() {
+            try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
+            catch(e) { return []; }
+        }
+
+        // 統合されたアイテムを取得
+        function getItems() {
+            return allItems;
+        }
+
+        function saveItems(items) {
+            allItems = items;
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+        }
+
+        // JSONファイルとlocalStorageをマージして初期化
+        function initItems() {
+            return fetch(JSON_URL)
+                .then(function(res) { return res.ok ? res.json() : { items: [] }; })
+                .then(function(data) {
+                    var jsonItems = data.items || [];
+                    var localItems = getLocalItems();
+                    var localIds = {};
+                    localItems.forEach(function(i) { localIds[i.id] = true; });
+                    // JSONにあってlocalStorageにないアイテムを追加
+                    jsonItems.forEach(function(item) {
+                        if (!localIds[item.id]) {
+                            localItems.push(item);
+                        }
+                    });
+                    allItems = localItems;
+                    saveItems(allItems);
+                })
+                .catch(function() {
+                    allItems = getLocalItems();
+                });
+        }
+
+        function generateId() {
+            return 'wish-' + Date.now() + '-' + Math.random().toString(36).substr(2, 6);
+        }
+
+        function formatPrice(price) {
+            if (!price && price !== 0) return '';
+            return '¥' + Number(price).toLocaleString();
+        }
+
+        function addItem() {
+            var name = document.getElementById('itemName').value.trim();
+            if (!name) {
+                document.getElementById('itemName').focus();
+                return;
+            }
+
+            var price = document.getElementById('itemPrice').value;
+            var url = document.getElementById('itemUrl').value.trim();
+            var priority = document.getElementById('itemPriority').value;
+            var category = document.getElementById('itemCategory').value;
+            var memo = document.getElementById('itemMemo').value.trim();
+
+            var item = {
+                id: generateId(),
+                name: name,
+                price: price ? Number(price) : null,
+                url: url || null,
+                priority: priority,
+                category: category,
+                memo: memo || null,
+                purchased: false,
+                createdAt: new Date().toISOString()
+            };
+
+            var items = getItems();
+            items.unshift(item);
+            saveItems(items);
+            renderList();
+
+            // フォームリセット
+            document.getElementById('itemName').value = '';
+            document.getElementById('itemPrice').value = '';
+            document.getElementById('itemUrl').value = '';
+            document.getElementById('itemPriority').value = 'medium';
+            document.getElementById('itemMemo').value = '';
+            document.getElementById('itemName').focus();
+        }
+
+        function togglePurchased(id) {
+            var items = getItems();
+            var item = items.find(function(i) { return i.id === id; });
+            if (item) {
+                item.purchased = !item.purchased;
+                if (item.purchased) {
+                    item.purchasedAt = new Date().toISOString();
+                } else {
+                    item.purchasedAt = null;
+                }
+                saveItems(items);
+                renderList();
+            }
+        }
+
+        function deleteItem(id) {
+            if (!confirm('このアイテムを削除しますか？')) return;
+            var items = getItems().filter(function(i) { return i.id !== id; });
+            saveItems(items);
+            renderList();
+        }
+
+        function setFilter(filter, btn) {
+            currentFilter = filter;
+            document.querySelectorAll('.filter-chip').forEach(function(c) { c.classList.remove('active'); });
+            btn.classList.add('active');
+            renderList();
+        }
+
+        function escapeHtml(str) {
+            var div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
+        function renderList() {
+            var items = getItems();
+            var filtered = items;
+            if (currentFilter === 'pending') {
+                filtered = items.filter(function(i) { return !i.purchased; });
+            } else if (currentFilter === 'purchased') {
+                filtered = items.filter(function(i) { return i.purchased; });
+            }
+
+            var listEl = document.getElementById('wishList');
+
+            if (filtered.length === 0) {
+                listEl.innerHTML = '<li class="empty-msg">' +
+                    (items.length === 0 ? 'ほしいものを追加してみましょう' : '該当するアイテムはありません') +
+                    '</li>';
+            } else {
+                var html = '';
+                filtered.forEach(function(item) {
+                    var priorityLabel = { high: '高', medium: '中', low: '低' };
+                    var nameHtml = item.url
+                        ? '<a href="' + escapeHtml(item.url) + '" target="_blank" rel="noopener">' + escapeHtml(item.name) + '</a>'
+                        : escapeHtml(item.name);
+
+                    html += '<li class="wish-item' + (item.purchased ? ' purchased' : '') + '">';
+                    html += '<div class="item-check' + (item.purchased ? ' checked' : '') + '" onclick="togglePurchased(\'' + item.id + '\')">' + (item.purchased ? '&#10003;' : '') + '</div>';
+                    html += '<div class="item-body">';
+                    html += '<div class="item-name">' + nameHtml + '</div>';
+                    html += '<div class="item-meta">';
+                    html += '<span class="priority-badge priority-' + item.priority + '">' + priorityLabel[item.priority] + '</span>';
+                    html += '<span>' + escapeHtml(item.category) + '</span>';
+                    if (item.memo) html += '<span>' + escapeHtml(item.memo) + '</span>';
+                    html += '</div>';
+                    html += '</div>';
+                    if (item.price !== null) {
+                        html += '<span class="item-price">' + formatPrice(item.price) + '</span>';
+                    }
+                    html += '<button class="item-delete" onclick="deleteItem(\'' + item.id + '\')" title="削除">&times;</button>';
+                    html += '</li>';
+                });
+                listEl.innerHTML = html;
+            }
+
+            // 合計更新
+            var pendingItems = items.filter(function(i) { return !i.purchased; });
+            var totalPrice = pendingItems.reduce(function(sum, i) { return sum + (i.price || 0); }, 0);
+            document.getElementById('itemCount').textContent = pendingItems.length + ' 件（未購入）';
+            document.getElementById('totalPrice').textContent = '合計: ' + formatPrice(totalPrice);
+        }
+
+        // Enterキーで追加
+        document.querySelectorAll('.add-section input').forEach(function(input) {
+            input.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') addItem();
+            });
+        });
+
+        // 初期表示（JSONファイルとマージ後にレンダリング）
+        initItems().then(function() { renderList(); });
+    </script>
+</body>
+</html>
