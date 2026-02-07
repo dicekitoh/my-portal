@@ -20,6 +20,16 @@
             "memo": null,
             "purchased": false,
             "createdAt": "2026-02-07T13:00:00"
+        },
+        {
+            "id": "wish-20260207-metaplanet",
+            "name": "メタプラネット株（3350）毎月100株購入",
+            "price": null,
+            "url": "https://finance.yahoo.co.jp/quote/3350.T",
+            "category": "その他",
+            "memo": "毎月定期的に100株ずつ購入",
+            "purchased": false,
+            "createdAt": "2026-02-07T14:00:00"
         }
     ]
 }
