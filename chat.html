@@ -28,6 +28,93 @@
         }
         header a:hover { color: #333; }
         header h1 { font-size: 1.2rem; font-weight: 300; }
+        .header-buttons {
+            margin-left: auto;
+            display: flex;
+            gap: 0.5rem;
+        }
+        .header-btn {
+            padding: 0.4rem 0.8rem;
+            background: none;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            color: #666;
+            font-family: inherit;
+        }
+        .header-btn:hover { border-color: #999; color: #333; }
+        .header-btn.active { background: #333; color: #fff; border-color: #333; }
+
+        /* 記憶パネル */
+        #memory-panel {
+            display: none;
+            border-bottom: 1px solid #eee;
+            padding: 1rem;
+            max-width: 800px;
+            margin: 0 auto;
+            width: 100%;
+            background: #fafafa;
+        }
+        #memory-panel.open { display: block; }
+        #memory-panel h2 {
+            font-size: 0.9rem;
+            font-weight: 500;
+            margin-bottom: 0.75rem;
+            color: #666;
+        }
+        .memory-list {
+            list-style: none;
+            margin-bottom: 0.75rem;
+        }
+        .memory-list li {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.4rem 0;
+            border-bottom: 1px solid #eee;
+            font-size: 0.9rem;
+        }
+        .memory-list li:last-child { border-bottom: none; }
+        .memory-delete-btn {
+            background: none;
+            border: none;
+            color: #c00;
+            cursor: pointer;
+            font-size: 1rem;
+            padding: 0 0.25rem;
+        }
+        .memory-delete-btn:hover { color: #f00; }
+        .memory-add-form {
+            display: flex;
+            gap: 0.5rem;
+        }
+        .memory-add-form input {
+            flex: 1;
+            padding: 0.4rem 0.6rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            font-family: inherit;
+            outline: none;
+        }
+        .memory-add-form input:focus { border-color: #999; }
+        .memory-add-form button {
+            padding: 0.4rem 0.8rem;
+            background: #333;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-family: inherit;
+        }
+        .memory-empty {
+            color: #999;
+            font-size: 0.85rem;
+            margin-bottom: 0.75rem;
+        }
+
         #chat-area {
             flex: 1;
             overflow-y: auto;
@@ -107,7 +194,19 @@
     <header>
         <a href="index.html">&larr; トップ</a>
         <h1>AIチャット</h1>
+        <div class="header-buttons">
+            <button class="header-btn" id="memory-btn">記憶</button>
+            <button class="header-btn" id="clear-log-btn">ログクリア</button>
+        </div>
     </header>
+    <div id="memory-panel">
+        <h2>記憶（AIが覚えていること）</h2>
+        <ul class="memory-list" id="memory-list"></ul>
+        <div class="memory-add-form">
+            <input type="text" id="memory-input" placeholder="記憶を追加（例：好きな食べ物はカレー）">
+            <button id="memory-add-btn">追加</button>
+        </div>
+    </div>
     <div id="chat-area"></div>
     <div id="input-area">
         <form id="chat-form">
@@ -121,13 +220,19 @@
         const chatForm = document.getElementById('chat-form');
         const messageInput = document.getElementById('message-input');
         const sendBtn = document.getElementById('send-btn');
+        const memoryBtn = document.getElementById('memory-btn');
+        const memoryPanel = document.getElementById('memory-panel');
+        const memoryList = document.getElementById('memory-list');
+        const memoryInput = document.getElementById('memory-input');
+        const memoryAddBtn = document.getElementById('memory-add-btn');
+        const clearLogBtn = document.getElementById('clear-log-btn');
 
         // 会話履歴（Gemini APIに送る用）
         const history = [];
 
         function addMessage(text, role) {
             const div = document.createElement('div');
-            div.className = `message ${role}`;
+            div.className = `message ${role === 'user' ? 'user' : 'bot'}`;
             const label = document.createElement('div');
             label.className = 'label';
             label.textContent = role === 'user' ? 'あなた' : 'AI';
@@ -161,6 +266,104 @@
             const el = document.getElementById('typing-indicator');
             if (el) el.remove();
         }
+
+        // --- ログ復元 ---
+        async function loadLogs() {
+            try {
+                const resp = await fetch('/api/chat/logs');
+                const logs = await resp.json();
+                for (const entry of logs) {
+                    addMessage(entry.text, entry.role);
+                    history.push({ role: entry.role === 'user' ? 'user' : 'model', text: entry.text });
+                }
+            } catch (e) {
+                // ログ取得失敗は無視
+            }
+        }
+
+        // --- 記憶管理 ---
+        async function loadMemories() {
+            try {
+                const resp = await fetch('/api/chat/memory');
+                const memories = await resp.json();
+                renderMemories(memories);
+            } catch (e) {
+                // 取得失敗は無視
+            }
+        }
+
+        function renderMemories(memories) {
+            memoryList.innerHTML = '';
+            if (memories.length === 0) {
+                const empty = document.createElement('div');
+                empty.className = 'memory-empty';
+                empty.textContent = 'まだ記憶がありません';
+                memoryList.appendChild(empty);
+                return;
+            }
+            for (const m of memories) {
+                const li = document.createElement('li');
+                const span = document.createElement('span');
+                span.textContent = m.text;
+                const btn = document.createElement('button');
+                btn.className = 'memory-delete-btn';
+                btn.textContent = '\u00d7';
+                btn.onclick = () => deleteMemory(m.id);
+                li.appendChild(span);
+                li.appendChild(btn);
+                memoryList.appendChild(li);
+            }
+        }
+
+        async function addMemory() {
+            const text = memoryInput.value.trim();
+            if (!text) return;
+            memoryInput.value = '';
+            try {
+                await fetch('/api/chat/memory', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text })
+                });
+                loadMemories();
+            } catch (e) {
+                alert('記憶の追加に失敗しました');
+            }
+        }
+
+        async function deleteMemory(id) {
+            try {
+                await fetch(`/api/chat/memory/${id}`, { method: 'DELETE' });
+                loadMemories();
+            } catch (e) {
+                alert('記憶の削除に失敗しました');
+            }
+        }
+
+        // --- イベント ---
+        memoryBtn.addEventListener('click', () => {
+            memoryPanel.classList.toggle('open');
+            memoryBtn.classList.toggle('active');
+            if (memoryPanel.classList.contains('open')) {
+                loadMemories();
+            }
+        });
+
+        memoryAddBtn.addEventListener('click', addMemory);
+        memoryInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') { e.preventDefault(); addMemory(); }
+        });
+
+        clearLogBtn.addEventListener('click', async () => {
+            if (!confirm('会話ログをすべてクリアしますか？')) return;
+            try {
+                await fetch('/api/chat/logs', { method: 'DELETE' });
+                chatArea.innerHTML = '';
+                history.length = 0;
+            } catch (e) {
+                alert('ログクリアに失敗しました');
+            }
+        });
 
         chatForm.addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -198,7 +401,10 @@
             messageInput.focus();
         });
 
-        messageInput.focus();
+        // 初期化
+        loadLogs().then(() => {
+            messageInput.focus();
+        });
     </script>
 </body>
 </html>
