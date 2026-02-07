@@ -24,59 +24,255 @@
         header a { text-decoration: none; color: #999; font-size: 0.9rem; }
         header a:hover { color: #333; }
         header h1 { font-size: 1.2rem; font-weight: 300; }
-        main {
-            flex: 1;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 2rem;
-        }
-        .content { max-width: 480px; width: 100%; }
-        .content p {
-            color: #666;
-            margin-bottom: 1.5rem;
-            line-height: 1.6;
-            font-size: 0.95rem;
-            text-align: center;
-        }
-        .services { display: flex; flex-direction: column; gap: 0.75rem; }
-        .services a {
-            display: block;
-            padding: 1rem 1.5rem;
+        .header-buttons { margin-left: auto; display: flex; gap: 0.5rem; }
+        .header-btn {
+            padding: 0.4rem 0.8rem;
+            background: none;
             border: 1px solid #ddd;
-            border-radius: 8px;
-            text-decoration: none;
-            color: #333;
-            transition: border-color 0.2s;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            color: #666;
+            font-family: inherit;
         }
-        .services a:hover { border-color: #999; }
-        .services .name { font-weight: 500; font-size: 1rem; }
-        .services .desc { font-size: 0.8rem; color: #999; margin-top: 0.2rem; }
+        .header-btn:hover { border-color: #999; color: #333; }
+        .header-btn.active { background: #333; color: #fff; border-color: #333; }
+        #memory-panel {
+            display: none;
+            border-bottom: 1px solid #eee;
+            padding: 1rem;
+            max-width: 800px;
+            margin: 0 auto;
+            width: 100%;
+            background: #fafafa;
+        }
+        #memory-panel.open { display: block; }
+        #memory-panel h2 { font-size: 0.9rem; font-weight: 500; margin-bottom: 0.75rem; color: #666; }
+        .memory-list { list-style: none; margin-bottom: 0.75rem; }
+        .memory-list li {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.4rem 0;
+            border-bottom: 1px solid #eee;
+            font-size: 0.9rem;
+        }
+        .memory-list li:last-child { border-bottom: none; }
+        .mem-del { background: none; border: none; color: #c00; cursor: pointer; font-size: 1rem; padding: 0 0.25rem; flex-shrink: 0; }
+        .mem-del:hover { color: #f00; }
+        .mem-add { display: flex; gap: 0.5rem; }
+        .mem-add input {
+            flex: 1; padding: 0.4rem 0.6rem; border: 1px solid #ddd;
+            border-radius: 4px; font-size: 0.85rem; font-family: inherit; outline: none;
+        }
+        .mem-add input:focus { border-color: #999; }
+        .mem-add button {
+            padding: 0.4rem 0.8rem; background: #333; color: #fff;
+            border: none; border-radius: 4px; cursor: pointer; font-size: 0.85rem; font-family: inherit;
+        }
+        .mem-empty { color: #999; font-size: 0.85rem; margin-bottom: 0.75rem; }
+        #apikey-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.3);
+            display: flex; align-items: center; justify-content: center; z-index: 100;
+        }
+        #apikey-overlay.hidden { display: none; }
+        .ak-dialog { background: #fff; padding: 2rem; border-radius: 8px; max-width: 420px; width: 90%; }
+        .ak-dialog h2 { font-size: 1rem; font-weight: 500; margin-bottom: 0.5rem; }
+        .ak-dialog p { font-size: 0.85rem; color: #666; margin-bottom: 1rem; }
+        .ak-dialog input {
+            width: 100%; padding: 0.6rem 0.8rem; border: 1px solid #ddd;
+            border-radius: 4px; font-size: 0.9rem; font-family: inherit; outline: none; margin-bottom: 0.75rem;
+        }
+        .ak-dialog input:focus { border-color: #999; }
+        .ak-dialog button {
+            padding: 0.6rem 1.2rem; background: #333; color: #fff;
+            border: none; border-radius: 4px; cursor: pointer; font-size: 0.9rem; font-family: inherit;
+        }
+        #chat-area {
+            flex: 1; overflow-y: auto; padding: 1rem;
+            max-width: 800px; margin: 0 auto; width: 100%;
+        }
+        .msg { margin-bottom: 1rem; display: flex; flex-direction: column; }
+        .msg.user { align-items: flex-end; }
+        .msg.bot { align-items: flex-start; }
+        .msg .bubble {
+            max-width: 80%; padding: 0.75rem 1rem; border-radius: 12px;
+            line-height: 1.6; white-space: pre-wrap; word-break: break-word;
+        }
+        .msg.user .bubble { background-color: #333; color: #fff; }
+        .msg.bot .bubble { background-color: #f0f0f0; color: #333; }
+        .msg .lbl { font-size: 0.7rem; color: #999; margin-bottom: 0.25rem; }
+        .typing .bubble { color: #999; font-style: italic; }
+        #input-area {
+            border-top: 1px solid #eee; padding: 1rem;
+            max-width: 800px; margin: 0 auto; width: 100%;
+        }
+        #input-area form { display: flex; gap: 0.5rem; }
+        #input-area input {
+            flex: 1; padding: 0.75rem 1rem; border: 1px solid #ddd;
+            border-radius: 4px; font-size: 1rem; outline: none; font-family: inherit;
+        }
+        #input-area input:focus { border-color: #999; }
+        #input-area button {
+            padding: 0.75rem 1.5rem; background-color: #333; color: #fff;
+            border: none; border-radius: 4px; cursor: pointer; font-size: 1rem; font-family: inherit;
+        }
+        #input-area button:hover { background-color: #555; }
+        #input-area button:disabled { background-color: #ccc; cursor: not-allowed; }
     </style>
 </head>
 <body>
+    <div id="apikey-overlay" class="hidden">
+        <div class="ak-dialog">
+            <h2>Gemini APIキーを設定</h2>
+            <p>チャットを利用するにはGemini APIキーが必要です。<br>キーはこのブラウザに保存されます。</p>
+            <input type="password" id="ak-input" placeholder="AIza...">
+            <button id="ak-save">保存</button>
+        </div>
+    </div>
     <header>
         <a href="index.html">&larr; トップ</a>
         <h1>AIチャット</h1>
-    </header>
-    <main>
-        <div class="content">
-            <p>AIチャットサービスを選んでください</p>
-            <div class="services">
-                <a href="https://gemini.google.com/app" target="_blank" rel="noopener">
-                    <div class="name">Gemini</div>
-                    <div class="desc">Google AI - 無料で利用可能</div>
-                </a>
-                <a href="https://claude.ai/new" target="_blank" rel="noopener">
-                    <div class="name">Claude</div>
-                    <div class="desc">Anthropic AI</div>
-                </a>
-                <a href="https://chatgpt.com/" target="_blank" rel="noopener">
-                    <div class="name">ChatGPT</div>
-                    <div class="desc">OpenAI</div>
-                </a>
-            </div>
+        <div class="header-buttons">
+            <button class="header-btn" id="mem-btn">記憶</button>
+            <button class="header-btn" id="clear-btn">ログクリア</button>
+            <button class="header-btn" id="ak-btn">APIキー</button>
         </div>
-    </main>
+    </header>
+    <div id="memory-panel">
+        <h2>記憶（AIが覚えていること）</h2>
+        <ul class="memory-list" id="mem-list"></ul>
+        <div class="mem-add">
+            <input type="text" id="mem-input" placeholder="記憶を追加（例：好きな食べ物はカレー）">
+            <button id="mem-add-btn">追加</button>
+        </div>
+    </div>
+    <div id="chat-area"></div>
+    <div id="input-area">
+        <form id="chat-form">
+            <input type="text" id="msg-input" placeholder="メッセージを入力..." autocomplete="off">
+            <button type="submit" id="send-btn">送信</button>
+        </form>
+    </div>
+    <script>
+        const GEMINI_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
+        const $ = id => document.getElementById(id);
+        const chatArea = $('chat-area'), msgInput = $('msg-input'), sendBtn = $('send-btn');
+        const history = [];
+
+        // localStorage
+        const ls = (k, v) => v === undefined ? JSON.parse(localStorage.getItem(k) || '[]') : localStorage.setItem(k, JSON.stringify(v));
+        const getKey = () => localStorage.getItem('chat_ak') || '';
+        const setKey = v => localStorage.setItem('chat_ak', v);
+
+        function addMsg(text, role) {
+            const d = document.createElement('div');
+            d.className = `msg ${role === 'user' ? 'user' : 'bot'}`;
+            d.innerHTML = `<div class="lbl">${role === 'user' ? 'あなた' : 'AI'}</div><div class="bubble"></div>`;
+            d.querySelector('.bubble').textContent = text;
+            chatArea.appendChild(d);
+            chatArea.scrollTop = chatArea.scrollHeight;
+        }
+
+        function showTyping() {
+            const d = document.createElement('div');
+            d.className = 'msg bot typing'; d.id = 'typing';
+            d.innerHTML = '<div class="lbl">AI</div><div class="bubble">考え中...</div>';
+            chatArea.appendChild(d);
+            chatArea.scrollTop = chatArea.scrollHeight;
+        }
+
+        function buildSysPrompt() {
+            const mems = ls('chat_mem');
+            const t = mems.length ? mems.map(m => '- ' + m.text).join('\n') : '（まだ記憶はありません）';
+            return `あなたは「ふじのすけ」専用のAIアシスタントです。
+親しみやすく、カジュアルな日本語で応答してください。
+丁寧すぎる敬語は不要です。友人のように話してください。
+
+以下はユーザーについて記憶している情報です。会話の中で自然に活用してください：
+${t}`;
+        }
+
+        // ログ復元
+        for (const e of ls('chat_logs').slice(-100)) {
+            addMsg(e.text, e.role);
+            history.push({ role: e.role === 'user' ? 'user' : 'model', text: e.text });
+        }
+
+        // 記憶パネル
+        function renderMem() {
+            const mems = ls('chat_mem'), el = $('mem-list');
+            el.innerHTML = '';
+            if (!mems.length) { el.innerHTML = '<div class="mem-empty">まだ記憶がありません</div>'; return; }
+            for (const m of mems) {
+                const li = document.createElement('li');
+                li.innerHTML = `<span></span><button class="mem-del">\u00d7</button>`;
+                li.querySelector('span').textContent = m.text;
+                li.querySelector('button').onclick = () => { ls('chat_mem', ls('chat_mem').filter(x => x.id !== m.id)); renderMem(); };
+                el.appendChild(li);
+            }
+        }
+
+        $('mem-btn').onclick = () => { $('memory-panel').classList.toggle('open'); $('mem-btn').classList.toggle('active'); renderMem(); };
+        const addMem = () => {
+            const t = $('mem-input').value.trim(); if (!t) return;
+            $('mem-input').value = '';
+            const mems = ls('chat_mem');
+            mems.push({ id: Date.now().toString(36), text: t });
+            ls('chat_mem', mems);
+            renderMem();
+        };
+        $('mem-add-btn').onclick = addMem;
+        $('mem-input').onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); addMem(); } };
+
+        // ログクリア
+        $('clear-btn').onclick = () => {
+            if (!confirm('会話ログをすべてクリアしますか？')) return;
+            ls('chat_logs', []); chatArea.innerHTML = ''; history.length = 0;
+        };
+
+        // APIキー
+        const showAk = () => { $('ak-input').value = getKey(); $('apikey-overlay').classList.remove('hidden'); $('ak-input').focus(); };
+        const saveAk = () => { const k = $('ak-input').value.trim(); if (!k) return; setKey(k); $('apikey-overlay').classList.add('hidden'); msgInput.focus(); };
+        $('ak-btn').onclick = showAk;
+        $('ak-save').onclick = saveAk;
+        $('ak-input').onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); saveAk(); } };
+
+        // 送信
+        $('chat-form').onsubmit = async e => {
+            e.preventDefault();
+            const text = msgInput.value.trim(); if (!text) return;
+            if (!getKey()) { showAk(); return; }
+            msgInput.value = ''; sendBtn.disabled = true;
+            addMsg(text, 'user'); showTyping();
+
+            const contents = history.map(h => ({ role: h.role, parts: [{ text: h.text }] }));
+            contents.push({ role: 'user', parts: [{ text }] });
+
+            try {
+                const r = await fetch(`${GEMINI_URL}?key=${getKey()}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ system_instruction: { parts: [{ text: buildSysPrompt() }] }, contents })
+                });
+                const d = await r.json();
+                const t = document.getElementById('typing'); if (t) t.remove();
+                if (d.candidates?.[0]) {
+                    const reply = d.candidates[0].content.parts[0].text;
+                    history.push({ role: 'user', text }, { role: 'model', text: reply });
+                    const logs = ls('chat_logs');
+                    logs.push({ timestamp: new Date().toISOString(), role: 'user', text });
+                    logs.push({ timestamp: new Date().toISOString(), role: 'model', text: reply });
+                    ls('chat_logs', logs);
+                    addMsg(reply, 'bot');
+                } else {
+                    addMsg('エラー: ' + (d.error?.message || '不明なエラー'), 'bot');
+                }
+            } catch { const t = document.getElementById('typing'); if (t) t.remove(); addMsg('通信エラーが発生しました。', 'bot'); }
+            sendBtn.disabled = false; msgInput.focus();
+        };
+
+        if (!getKey()) showAk(); else msgInput.focus();
+    </script>
 </body>
 </html>
