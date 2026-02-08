@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>お知らせカード管理</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Hiragino Sans", sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+            min-height: 100vh;
+        }
+
+        /* ヘッダー */
+        .top-bar {
+            background: #fff;
+            border-bottom: 1px solid #e0e0e0;
+            padding: 0.8rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .top-bar h1 {
+            font-size: 1.2rem;
+            font-weight: 400;
+        }
+        .top-bar-actions {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+        .btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-add {
+            background: #1a73e8;
+            color: #fff;
+        }
+        .btn-add:hover { background: #1557b0; }
+        .btn-deploy {
+            background: #34a853;
+            color: #fff;
+        }
+        .btn-deploy:hover { background: #2d8f47; }
+        .btn-deploy:disabled {
+            background: #a8d5b8;
+            cursor: not-allowed;
+        }
+        .btn-logout {
+            background: #eee;
+            color: #555;
+        }
+        .btn-logout:hover { background: #ddd; }
+
+        /* ステータスバー */
+        .status-bar {
+            display: none;
+            padding: 0.6rem 1.5rem;
+            font-size: 0.85rem;
+            text-align: center;
+        }
+        .status-bar.success {
+            display: block;
+            background: #d4edda;
+            color: #155724;
+            border-bottom: 1px solid #c3e6cb;
+        }
+        .status-bar.error {
+            display: block;
+            background: #f8d7da;
+            color: #721c24;
+            border-bottom: 1px solid #f5c6cb;
+        }
+        .status-bar.loading {
+            display: block;
+            background: #fff3cd;
+            color: #856404;
+            border-bottom: 1px solid #ffc107;
+        }
+
+        /* カードグリッド */
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1rem;
+            padding: 1.5rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* カード */
+        .card {
+            background: #fff;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 1rem;
+            transition: box-shadow 0.2s;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+        .card:hover {
+            box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+        }
+        .card.hidden-card {
+            opacity: 0.5;
+            border-style: dashed;
+            border-color: #e74c3c;
+        }
+        .card-title {
+            font-size: 0.95rem;
+            font-weight: 500;
+            margin-bottom: 0.4rem;
+            line-height: 1.4;
+            word-break: break-word;
+        }
+        .card-date {
+            font-size: 0.75rem;
+            color: #999;
+            margin-bottom: 0.5rem;
+        }
+        .card-content {
+            font-size: 0.85rem;
+            color: #555;
+            line-height: 1.5;
+            flex: 1;
+            overflow: hidden;
+            display: -webkit-box;
+            -webkit-line-clamp: 4;
+            -webkit-box-orient: vertical;
+            word-break: break-word;
+        }
+        .card-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.3rem;
+            margin-top: 0.8rem;
+            padding-top: 0.5rem;
+            border-top: 1px solid #f0f0f0;
+        }
+        .card-btn {
+            border: none;
+            background: none;
+            cursor: pointer;
+            padding: 0.3rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            color: #666;
+            transition: all 0.15s;
+        }
+        .card-btn:hover { background: #f0f0f0; }
+        .card-btn.btn-toggle-visible { color: #27ae60; }
+        .card-btn.btn-toggle-hidden { color: #e74c3c; }
+        .card-btn.btn-edit { color: #1a73e8; }
+        .card-btn.btn-delete { color: #e74c3c; }
+        .card-btn.btn-delete:hover { background: #fde8e8; }
+
+        .visibility-badge {
+            display: inline-block;
+            font-size: 0.7rem;
+            padding: 0.15rem 0.4rem;
+            border-radius: 3px;
+            margin-left: 0.4rem;
+            vertical-align: middle;
+        }
+        .badge-visible {
+            background: #d4edda;
+            color: #155724;
+        }
+        .badge-hidden {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        /* モーダル */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.4);
+            z-index: 200;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-overlay.show { display: flex; }
+        .modal {
+            background: #fff;
+            border-radius: 12px;
+            padding: 1.5rem;
+            width: 480px;
+            max-width: 90vw;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+        }
+        .modal h2 {
+            font-size: 1.1rem;
+            font-weight: 500;
+            margin-bottom: 1rem;
+        }
+        .modal label {
+            display: block;
+            font-size: 0.85rem;
+            color: #555;
+            margin-bottom: 0.3rem;
+            margin-top: 0.8rem;
+        }
+        .modal label:first-of-type { margin-top: 0; }
+        .modal input, .modal textarea {
+            width: 100%;
+            padding: 0.6rem 0.8rem;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            font-family: inherit;
+            outline: none;
+        }
+        .modal input:focus, .modal textarea:focus {
+            border-color: #1a73e8;
+        }
+        .modal textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.5rem;
+            margin-top: 1.2rem;
+        }
+        .modal-actions .btn-cancel {
+            background: #eee;
+            color: #333;
+        }
+        .modal-actions .btn-cancel:hover { background: #ddd; }
+        .modal-actions .btn-save {
+            background: #1a73e8;
+            color: #fff;
+        }
+        .modal-actions .btn-save:hover { background: #1557b0; }
+
+        /* 確認ダイアログ */
+        .confirm-text {
+            font-size: 0.95rem;
+            line-height: 1.5;
+            margin-bottom: 0.5rem;
+        }
+        .confirm-sub {
+            font-size: 0.8rem;
+            color: #888;
+        }
+        .modal-actions .btn-danger {
+            background: #e74c3c;
+            color: #fff;
+        }
+        .modal-actions .btn-danger:hover { background: #c0392b; }
+
+        /* 空状態 */
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: #999;
+        }
+        .empty-state p { font-size: 1rem; margin-bottom: 0.5rem; }
+        .empty-state .hint { font-size: 0.85rem; }
+
+        /* レスポンシブ */
+        @media (max-width: 600px) {
+            .card-grid {
+                grid-template-columns: 1fr;
+                padding: 1rem;
+            }
+            .top-bar {
+                flex-wrap: wrap;
+                gap: 0.5rem;
+            }
+            .top-bar h1 { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="top-bar">
+        <h1>お知らせカード管理</h1>
+        <div class="top-bar-actions">
+            <button class="btn btn-add" onclick="openAddModal()">+ 新規追加</button>
+            <button class="btn btn-deploy" id="deployBtn" onclick="confirmDeploy()">デプロイ</button>
+            <a href="/logout" class="btn btn-logout">ログアウト</a>
+        </div>
+    </div>
+
+    <div class="status-bar" id="statusBar"></div>
+
+    <div class="card-grid" id="cardGrid">
+        <!-- カードがここに動的挿入 -->
+    </div>
+
+    <!-- 追加/編集モーダル -->
+    <div class="modal-overlay" id="editModal">
+        <div class="modal">
+            <h2 id="modalTitle">新規お知らせ</h2>
+            <input type="hidden" id="editId">
+            <label for="editCardTitle">タイトル</label>
+            <input type="text" id="editCardTitle" placeholder="お知らせのタイトル">
+            <label for="editSlug">スラッグ (ID用, 英数字)</label>
+            <input type="text" id="editSlug" placeholder="例: meeting, notice">
+            <label for="editContent">内容</label>
+            <textarea id="editContent" placeholder="お知らせの内容を入力"></textarea>
+            <div class="modal-actions">
+                <button class="btn btn-cancel" onclick="closeEditModal()">キャンセル</button>
+                <button class="btn btn-save" onclick="saveCard()">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 削除確認モーダル -->
+    <div class="modal-overlay" id="deleteModal">
+        <div class="modal">
+            <h2>削除の確認</h2>
+            <input type="hidden" id="deleteId">
+            <p class="confirm-text">このお知らせを削除しますか？</p>
+            <p class="confirm-sub" id="deleteTarget"></p>
+            <div class="modal-actions">
+                <button class="btn btn-cancel" onclick="closeDeleteModal()">キャンセル</button>
+                <button class="btn btn-danger" onclick="executeDelete()">削除</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- デプロイ確認モーダル -->
+    <div class="modal-overlay" id="deployModal">
+        <div class="modal">
+            <h2>デプロイの確認</h2>
+            <p class="confirm-text">現在のお知らせ内容で news.html を生成し、GitHub Pages にデプロイします。</p>
+            <p class="confirm-sub">表示中のカードのみが公開されます。</p>
+            <div class="modal-actions">
+                <button class="btn btn-cancel" onclick="closeDeployModal()">キャンセル</button>
+                <button class="btn btn-save" onclick="executeDeploy()">デプロイ実行</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        var cards = [];
+
+        // --- API呼び出し ---
+
+        function api(method, path, body) {
+            var opts = { method: method, headers: {} };
+            if (body) {
+                opts.headers['Content-Type'] = 'application/json';
+                opts.body = JSON.stringify(body);
+            }
+            return fetch(path, opts).then(function(r) {
+                if (r.status === 401) {
+                    window.location.href = '/login';
+                    throw new Error('認証切れ');
+                }
+                return r.json().then(function(data) {
+                    if (!r.ok) throw new Error(data.error || 'エラーが発生しました');
+                    return data;
+                });
+            });
+        }
+
+        // --- 状態表示 ---
+
+        function showStatus(msg, type) {
+            var bar = document.getElementById('statusBar');
+            bar.textContent = msg;
+            bar.className = 'status-bar ' + type;
+            if (type !== 'loading') {
+                setTimeout(function() { bar.className = 'status-bar'; }, 4000);
+            }
+        }
+
+        // --- カード描画 ---
+
+        function renderCards() {
+            var grid = document.getElementById('cardGrid');
+
+            if (cards.length === 0) {
+                grid.innerHTML = '<div class="empty-state"><p>お知らせがありません</p><p class="hint">「+ 新規追加」ボタンで追加してください</p></div>';
+                return;
+            }
+
+            var html = '';
+            for (var i = 0; i < cards.length; i++) {
+                var c = cards[i];
+                var hiddenClass = c.visible ? '' : ' hidden-card';
+                var badge = c.visible
+                    ? '<span class="visibility-badge badge-visible">表示</span>'
+                    : '<span class="visibility-badge badge-hidden">非表示</span>';
+                var toggleClass = c.visible ? 'btn-toggle-visible' : 'btn-toggle-hidden';
+                var toggleIcon = c.visible ? '&#128065;' : '&#128064;';
+                var title = escapeHtml(c.title);
+                var content = escapeHtml(c.content);
+
+                html += '<div class="card' + hiddenClass + '" data-id="' + c.id + '">'
+                    + '<div class="card-title">' + title + badge + '</div>'
+                    + '<div class="card-date">' + (c.date_display || c.date) + '</div>'
+                    + '<div class="card-content">' + content + '</div>'
+                    + '<div class="card-actions">'
+                    + '<button class="card-btn ' + toggleClass + '" onclick="toggleCard(\'' + c.id + '\')" title="表示切替">' + toggleIcon + '</button>'
+                    + '<button class="card-btn btn-edit" onclick="openEditModal(\'' + c.id + '\')" title="編集">&#9998;</button>'
+                    + '<button class="card-btn btn-delete" onclick="openDeleteModal(\'' + c.id + '\')" title="削除">&#128465;</button>'
+                    + '</div></div>';
+            }
+            grid.innerHTML = html;
+        }
+
+        function escapeHtml(str) {
+            var div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
+        // --- カード操作 ---
+
+        function loadCards() {
+            api('GET', '/api/cards').then(function(data) {
+                cards = data;
+                renderCards();
+            }).catch(function(e) {
+                showStatus('読み込みエラー: ' + e.message, 'error');
+            });
+        }
+
+        function toggleCard(id) {
+            api('PATCH', '/api/cards/' + id + '/toggle').then(function(updated) {
+                for (var i = 0; i < cards.length; i++) {
+                    if (cards[i].id === id) {
+                        cards[i] = updated;
+                        break;
+                    }
+                }
+                renderCards();
+                showStatus(updated.visible ? '表示に切り替えました' : '非表示に切り替えました', 'success');
+            }).catch(function(e) {
+                showStatus('エラー: ' + e.message, 'error');
+            });
+        }
+
+        // --- 追加/編集モーダル ---
+
+        function openAddModal() {
+            document.getElementById('modalTitle').textContent = '新規お知らせ';
+            document.getElementById('editId').value = '';
+            document.getElementById('editCardTitle').value = '';
+            document.getElementById('editSlug').value = '';
+            document.getElementById('editSlug').closest('label').style.display = '';
+            document.getElementById('editSlug').style.display = '';
+            document.getElementById('editContent').value = '';
+            document.getElementById('editModal').classList.add('show');
+            document.getElementById('editCardTitle').focus();
+        }
+
+        function openEditModal(id) {
+            var card = cards.find(function(c) { return c.id === id; });
+            if (!card) return;
+            document.getElementById('modalTitle').textContent = '編集';
+            document.getElementById('editId').value = id;
+            document.getElementById('editCardTitle').value = card.title;
+            document.getElementById('editSlug').value = '';
+            document.getElementById('editSlug').closest('label').style.display = 'none';
+            document.getElementById('editSlug').style.display = 'none';
+            document.getElementById('editContent').value = card.content;
+            document.getElementById('editModal').classList.add('show');
+            document.getElementById('editCardTitle').focus();
+        }
+
+        function closeEditModal() {
+            document.getElementById('editModal').classList.remove('show');
+        }
+
+        function saveCard() {
+            var id = document.getElementById('editId').value;
+            var title = document.getElementById('editCardTitle').value.trim();
+            var content = document.getElementById('editContent').value.trim();
+            var slug = document.getElementById('editSlug').value.trim() || 'item';
+
+            if (!title || !content) {
+                showStatus('タイトルと内容を入力してください', 'error');
+                return;
+            }
+
+            if (id) {
+                // 編集
+                api('PUT', '/api/cards/' + id, { title: title, content: content }).then(function(updated) {
+                    for (var i = 0; i < cards.length; i++) {
+                        if (cards[i].id === id) {
+                            cards[i] = updated;
+                            break;
+                        }
+                    }
+                    closeEditModal();
+                    renderCards();
+                    showStatus('更新しました', 'success');
+                }).catch(function(e) {
+                    showStatus('エラー: ' + e.message, 'error');
+                });
+            } else {
+                // 新規
+                api('POST', '/api/cards', { title: title, content: content, slug: slug }).then(function(newCard) {
+                    cards.unshift(newCard);
+                    closeEditModal();
+                    renderCards();
+                    showStatus('追加しました', 'success');
+                }).catch(function(e) {
+                    showStatus('エラー: ' + e.message, 'error');
+                });
+            }
+        }
+
+        // --- 削除 ---
+
+        function openDeleteModal(id) {
+            var card = cards.find(function(c) { return c.id === id; });
+            if (!card) return;
+            document.getElementById('deleteId').value = id;
+            document.getElementById('deleteTarget').textContent = '「' + card.title + '」';
+            document.getElementById('deleteModal').classList.add('show');
+        }
+
+        function closeDeleteModal() {
+            document.getElementById('deleteModal').classList.remove('show');
+        }
+
+        function executeDelete() {
+            var id = document.getElementById('deleteId').value;
+            api('DELETE', '/api/cards/' + id).then(function() {
+                cards = cards.filter(function(c) { return c.id !== id; });
+                closeDeleteModal();
+                renderCards();
+                showStatus('削除しました', 'success');
+            }).catch(function(e) {
+                showStatus('エラー: ' + e.message, 'error');
+            });
+        }
+
+        // --- デプロイ ---
+
+        function confirmDeploy() {
+            document.getElementById('deployModal').classList.add('show');
+        }
+
+        function closeDeployModal() {
+            document.getElementById('deployModal').classList.remove('show');
+        }
+
+        function executeDeploy() {
+            closeDeployModal();
+            var btn = document.getElementById('deployBtn');
+            btn.disabled = true;
+            btn.textContent = 'デプロイ中...';
+            showStatus('デプロイ中...', 'loading');
+
+            api('POST', '/api/deploy').then(function(result) {
+                showStatus(result.message, 'success');
+            }).catch(function(e) {
+                showStatus('デプロイ失敗: ' + e.message, 'error');
+            }).finally(function() {
+                btn.disabled = false;
+                btn.textContent = 'デプロイ';
+            });
+        }
+
+        // --- モーダル外クリックで閉じる ---
+
+        document.getElementById('editModal').addEventListener('click', function(e) {
+            if (e.target === this) closeEditModal();
+        });
+        document.getElementById('deleteModal').addEventListener('click', function(e) {
+            if (e.target === this) closeDeleteModal();
+        });
+        document.getElementById('deployModal').addEventListener('click', function(e) {
+            if (e.target === this) closeDeployModal();
+        });
+
+        // --- Escキーでモーダル閉じる ---
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeEditModal();
+                closeDeleteModal();
+                closeDeployModal();
+            }
+        });
+
+        // --- 初期読み込み ---
+        loadCards();
+    </script>
+</body>
+</html>

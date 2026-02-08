@@ -1,0 +1,15 @@
+[Unit]
+Description=News Card Manager - Portal News Management System
+After=network.target
+
+[Service]
+Type=simple
+User=fujinosuke
+WorkingDirectory=/home/fujinosuke/projects/portal/news_manager
+ExecStart=/usr/bin/python3 /home/fujinosuke/projects/portal/news_manager/news_card_manager.py
+Restart=on-failure
+RestartSec=5
+Environment=PYTHONUNBUFFERED=1
+
+[Install]
+WantedBy=multi-user.target

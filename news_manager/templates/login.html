@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ログイン - お知らせ管理</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Hiragino Sans", sans-serif;
+            background-color: #ffffff;
+            color: #333;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        .login-box {
+            background: #f9f9f9;
+            border-radius: 12px;
+            padding: 2.5rem;
+            width: 340px;
+            text-align: center;
+        }
+        .login-box h1 {
+            font-size: 1.3rem;
+            font-weight: 400;
+            margin-bottom: 0.5rem;
+        }
+        .login-box .subtitle {
+            font-size: 0.85rem;
+            color: #888;
+            margin-bottom: 1.5rem;
+        }
+        .login-box input {
+            width: 100%;
+            padding: 0.7rem 1rem;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 0.95rem;
+            outline: none;
+            margin-bottom: 1rem;
+        }
+        .login-box input:focus {
+            border-color: #666;
+        }
+        .login-box button {
+            width: 100%;
+            padding: 0.7rem;
+            background: #333;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .login-box button:hover {
+            background: #555;
+        }
+        .error {
+            color: #e74c3c;
+            font-size: 0.85rem;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-box">
+        <h1>お知らせ管理</h1>
+        <p class="subtitle">管理者パスワードを入力してください</p>
+        {% if error %}
+        <p class="error">{{ error }}</p>
+        {% endif %}
+        <form method="POST" action="/login">
+            <input type="password" name="password" placeholder="パスワード" autofocus>
+            <button type="submit">ログイン</button>
+        </form>
+    </div>
+</body>
+</html>

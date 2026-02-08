@@ -30,6 +30,16 @@
             "memo": "毎月定期的に100株ずつ購入",
             "purchased": false,
             "createdAt": "2026-02-07T14:00:00"
+        },
+        {
+            "id": "wish-20260208-kindle-colorsoft",
+            "name": "Amazon Kindle Colorsoft 16GB 広告無し ブラック (2025年発売)",
+            "price": null,
+            "url": "https://www.amazon.co.jp/dp/B0CX8MT2M2",
+            "category": "ガジェット",
+            "memo": "7インチカラーディスプレイ、防水、色調調節ライト、最大8週間バッテリー",
+            "purchased": false,
+            "createdAt": "2026-02-08T12:00:00"
         }
     ]
 }
