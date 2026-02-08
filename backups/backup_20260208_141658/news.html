@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>お知らせ - My Portal</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Hiragino Sans", sans-serif;
+            background-color: #ffffff;
+            color: #333;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        header { padding: 2rem; text-align: center; border-bottom: 1px solid #eee; }
+        header h1 { font-size: 1.8rem; font-weight: 300; }
+        main { flex: 1; padding: 2rem; max-width: 800px; margin: 0 auto; width: 100%; }
+        .news-item { background: #f9f9f9; padding: 1.5rem; border-radius: 8px; margin-bottom: 1.5rem; position: relative; }
+        .news-item h3 { font-size: 1.1rem; margin-bottom: 0.5rem; }
+        .news-item .date { font-size: 0.85rem; color: #888; margin-bottom: 0.8rem; }
+        .news-item p { line-height: 1.6; }
+        .back-link { display: block; text-align: center; margin-top: 2rem; color: #666; text-decoration: none; }
+        .back-link:hover { color: #333; }
+        footer { padding: 1rem; text-align: center; border-top: 1px solid #eee; font-size: 0.8rem; color: #999; }
+
+        /* 管理者モード */
+        .admin-toggle {
+            cursor: pointer;
+            user-select: none;
+            color: #ccc;
+            font-size: 0.75rem;
+            transition: color 0.2s;
+        }
+        .admin-toggle:hover { color: #999; }
+        .admin-toggle.active { color: #e74c3c; }
+
+        .visibility-btn {
+            display: none;
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            border: none;
+            border-radius: 6px;
+            padding: 0.4rem 0.8rem;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .visibility-btn.showing { background: #27ae60; color: #fff; }
+        .visibility-btn.hidden { background: #e74c3c; color: #fff; }
+        .visibility-btn:hover { opacity: 0.85; }
+
+        body.admin-mode .visibility-btn { display: block; }
+        body.admin-mode .news-item.is-hidden {
+            opacity: 0.4;
+            border: 2px dashed #e74c3c;
+        }
+
+        .admin-bar {
+            display: none;
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            border-radius: 8px;
+            padding: 0.8rem 1.2rem;
+            margin-bottom: 1.5rem;
+            font-size: 0.9rem;
+            color: #856404;
+            text-align: center;
+        }
+        .admin-bar .logout-btn {
+            background: #dc3545;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            padding: 0.3rem 0.8rem;
+            margin-left: 1rem;
+            font-size: 0.8rem;
+            cursor: pointer;
+        }
+        .admin-bar .logout-btn:hover { opacity: 0.85; }
+        body.admin-mode .admin-bar { display: block; }
+
+        /* パスワードダイアログ */
+        .pw-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.4);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        .pw-overlay.show { display: flex; }
+        .pw-dialog {
+            background: #fff;
+            border-radius: 12px;
+            padding: 2rem;
+            width: 320px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+            text-align: center;
+        }
+        .pw-dialog h3 { font-size: 1rem; margin-bottom: 1rem; font-weight: 500; }
+        .pw-dialog input {
+            width: 100%;
+            padding: 0.6rem 0.8rem;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 0.95rem;
+            outline: none;
+        }
+        .pw-dialog input:focus { border-color: #666; }
+        .pw-dialog .pw-actions {
+            margin-top: 1rem;
+            display: flex;
+            gap: 0.5rem;
+        }
+        .pw-dialog .pw-actions button {
+            flex: 1;
+            padding: 0.5rem;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+        .pw-dialog .btn-login { background: #333; color: #fff; }
+        .pw-dialog .btn-login:hover { background: #555; }
+        .pw-dialog .btn-cancel { background: #eee; color: #333; }
+        .pw-dialog .btn-cancel:hover { background: #ddd; }
+        .pw-error { color: #e74c3c; font-size: 0.8rem; margin-top: 0.5rem; min-height: 1.2em; }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>お知らせ</h1>
+    </header>
+    <main>
+        <div class="admin-bar">
+            管理者モード — 各お知らせの表示/非表示を切り替えできます
+            <button class="logout-btn" onclick="logoutAdmin()">ログアウト</button>
+        </div>
+
+        <article class="news-item" data-news-id="news-20260206-prado">
+            <button class="visibility-btn" onclick="toggleVisibility(this)"></button>
+            <h3>【完了報告】南幌町 ランドクルーザープラド 査定終了のお知らせ</h3>
+            <div class="date">2026年2月6日</div>
+            <p>南幌町のお客様よりご依頼いただいておりましたトヨタ ランドクルーザープラド（2019年式／TRJ150W／TX Lパッケージ／走行距離 約48,000km）の査定が完了いたしました。外装・内装ともに良好な状態で、ディーゼルモデル特有のエンジン周りも整備記録が揃っており、高評価の査定結果となっております。査定結果の詳細につきましては、担当者より改めてご連絡差し上げます。ご不明な点がございましたらお気軽にお問い合わせください。</p>
+        </article>
+        <article class="news-item" data-news-id="news-20260205-smbc">
+            <button class="visibility-btn" onclick="toggleVisibility(this)"></button>
+            <h3>【訂正】三井住友カード引き落とし日</h3>
+            <div class="date">2026年2月5日</div>
+            <p>引き落とし日は5日ではなく10日でした。勘違いしておりました。お騒がせいたしました。</p>
+        </article>
+        <article class="news-item" data-news-id="news-20260205-asahikawa">
+            <button class="visibility-btn" onclick="toggleVisibility(this)"></button>
+            <h3>本日の予定</h3>
+            <div class="date">2026年2月5日</div>
+            <p>本日は終日旭川出張のため不在です。</p>
+        </article>
+        <article class="news-item" data-news-id="news-20260205-renewal">
+            <button class="visibility-btn" onclick="toggleVisibility(this)"></button>
+            <h3>ポータルサイトをリニューアルしました</h3>
+            <div class="date">2026年2月5日</div>
+            <p>新しいデザインでポータルサイトを公開しました。今後も情報を更新していきます。</p>
+        </article>
+        <article class="news-item" data-news-id="news-20260205-test">
+            <button class="visibility-btn" onclick="toggleVisibility(this)"></button>
+            <h3>テスト投稿</h3>
+            <div class="date">2026年2月5日</div>
+            <p>Claude Codeからリモートで追加したページです。SSH経由でMac miniサーバーに接続し、自動的にデプロイしています。</p>
+        </article>
+        <a href="index.html" class="back-link">← トップに戻る</a>
+    </main>
+    <footer>
+        <p>&copy; 2026 My Portal <span class="admin-toggle" id="adminToggle" onclick="toggleAdmin()">&#9881;</span></p>
+    </footer>
+
+    <!-- パスワードダイアログ -->
+    <div class="pw-overlay" id="pwOverlay">
+        <div class="pw-dialog">
+            <h3>管理者パスワード</h3>
+            <input type="password" id="pwInput" placeholder="パスワードを入力">
+            <div class="pw-error" id="pwError"></div>
+            <div class="pw-actions">
+                <button class="btn-cancel" onclick="closePwDialog()">キャンセル</button>
+                <button class="btn-login" onclick="submitPassword()">ログイン</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        var STORAGE_KEY = 'portal_news_hidden';
+        var AUTH_KEY = 'portal_news_admin';
+        var ADMIN_HASH = '5fac9782738bc55eeb2688891075f9e37fb6779d5f31786acc0d259ec5b3a2e7';
+        var adminMode = false;
+
+        // SHA-256
+        async function sha256(text) {
+            var data = new TextEncoder().encode(text);
+            var buf = await crypto.subtle.digest('SHA-256', data);
+            return Array.from(new Uint8Array(buf)).map(function(b) {
+                return b.toString(16).padStart(2, '0');
+            }).join('');
+        }
+
+        // --- 表示/非表示管理 ---
+        function getHiddenIds() {
+            try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
+            catch(e) { return []; }
+        }
+
+        function saveHiddenIds(ids) {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(ids));
+        }
+
+        function applyVisibility() {
+            var hiddenIds = getHiddenIds();
+            document.querySelectorAll('.news-item').forEach(function(item) {
+                var id = item.getAttribute('data-news-id');
+                var isHidden = hiddenIds.indexOf(id) !== -1;
+                var btn = item.querySelector('.visibility-btn');
+
+                if (isHidden) {
+                    item.classList.add('is-hidden');
+                    item.style.display = adminMode ? '' : 'none';
+                    btn.textContent = '非表示中';
+                    btn.className = 'visibility-btn hidden';
+                } else {
+                    item.classList.remove('is-hidden');
+                    item.style.display = '';
+                    btn.textContent = '表示中';
+                    btn.className = 'visibility-btn showing';
+                }
+            });
+        }
+
+        function toggleVisibility(btn) {
+            var item = btn.closest('.news-item');
+            var id = item.getAttribute('data-news-id');
+            var hiddenIds = getHiddenIds();
+            var idx = hiddenIds.indexOf(id);
+            if (idx !== -1) hiddenIds.splice(idx, 1);
+            else hiddenIds.push(id);
+            saveHiddenIds(hiddenIds);
+            applyVisibility();
+        }
+
+        // --- 管理者認証 ---
+        function enterAdmin() {
+            adminMode = true;
+            document.body.classList.add('admin-mode');
+            document.getElementById('adminToggle').classList.add('active');
+            sessionStorage.setItem(AUTH_KEY, '1');
+            applyVisibility();
+        }
+
+        function logoutAdmin() {
+            adminMode = false;
+            document.body.classList.remove('admin-mode');
+            document.getElementById('adminToggle').classList.remove('active');
+            sessionStorage.removeItem(AUTH_KEY);
+            applyVisibility();
+        }
+
+        function toggleAdmin() {
+            if (adminMode) {
+                logoutAdmin();
+                return;
+            }
+            // セッション内で認証済みなら即切替
+            if (sessionStorage.getItem(AUTH_KEY) === '1') {
+                enterAdmin();
+                return;
+            }
+            openPwDialog();
+        }
+
+        // --- パスワードダイアログ ---
+        function openPwDialog() {
+            document.getElementById('pwOverlay').classList.add('show');
+            document.getElementById('pwInput').value = '';
+            document.getElementById('pwError').textContent = '';
+            document.getElementById('pwInput').focus();
+        }
+
+        function closePwDialog() {
+            document.getElementById('pwOverlay').classList.remove('show');
+        }
+
+        async function submitPassword() {
+            var input = document.getElementById('pwInput').value;
+            if (!input) return;
+            var hash = await sha256(input);
+            if (hash === ADMIN_HASH) {
+                closePwDialog();
+                enterAdmin();
+            } else {
+                document.getElementById('pwError').textContent = 'パスワードが違います';
+                document.getElementById('pwInput').value = '';
+                document.getElementById('pwInput').focus();
+            }
+        }
+
+        document.getElementById('pwInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') submitPassword();
+        });
+
+        document.getElementById('pwOverlay').addEventListener('click', function(e) {
+            if (e.target === this) closePwDialog();
+        });
+
+        // ページ読み込み時
+        applyVisibility();
+    </script>
+</body>
+</html>
