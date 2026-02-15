@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ほしいもの・したいことリスト - My Portal</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Hiragino Sans", sans-serif;
+            background-color: #ffffff;
+            color: #333;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        header { padding: 2rem; text-align: center; border-bottom: 1px solid #eee; }
+        header h1 { font-size: 1.8rem; font-weight: 300; }
+        main { flex: 1; padding: 2rem; max-width: 800px; margin: 0 auto; width: 100%; }
+        footer { padding: 1rem; text-align: center; border-top: 1px solid #eee; font-size: 0.8rem; color: #999; }
+        .back-link { display: block; text-align: center; margin-top: 2rem; color: #666; text-decoration: none; }
+        .back-link:hover { color: #333; }
+
+        .wish-list { list-style: none; }
+        .wish-item {
+            padding: 1rem 1.2rem;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            margin-bottom: 0.8rem;
+        }
+        .wish-item:hover { border-color: #ccc; }
+        .item-name {
+            font-size: 0.95rem;
+            margin-bottom: 0.3rem;
+        }
+        .item-name a { color: #1a73e8; text-decoration: none; }
+        .item-name a:hover { text-decoration: underline; }
+        .item-meta {
+            font-size: 0.8rem;
+            color: #999;
+        }
+        .item-price {
+            font-weight: 500;
+            color: #333;
+        }
+        .empty-msg {
+            text-align: center;
+            color: #bbb;
+            padding: 3rem 1rem;
+            font-size: 0.95rem;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>ほしいもの・したいことリスト</h1>
+    </header>
+    <main>
+        <ul class="wish-list" id="wishList">
+            <li class="empty-msg">読み込み中...</li>
+        </ul>
+        <a href="index.html" class="back-link">&larr; トップに戻る</a>
+    </main>
+    <footer>
+        <p>&copy; 2026 My Portal</p>
+    </footer>
+
+    <script>
+        function escapeHtml(str) {
+            var div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
+        function formatPrice(price) {
+            return '¥' + Number(price).toLocaleString();
+        }
+
+        fetch('data/wishlist.json')
+            .then(function(res) { return res.json(); })
+            .then(function(data) {
+                var items = data.items || [];
+                var listEl = document.getElementById('wishList');
+
+                if (items.length === 0) {
+                    listEl.innerHTML = '<li class="empty-msg">リストは空です</li>';
+                    return;
+                }
+
+                var html = '';
+                items.forEach(function(item) {
+                    var nameHtml = item.url
+                        ? '<a href="' + escapeHtml(item.url) + '" target="_blank" rel="noopener">' + escapeHtml(item.name) + '</a>'
+                        : escapeHtml(item.name);
+
+                    var meta = [item.category];
+                    if (item.price) meta.push(formatPrice(item.price));
+                    if (item.memo) meta.push(item.memo);
+
+                    html += '<li class="wish-item">';
+                    html += '<div class="item-name">' + nameHtml + '</div>';
+                    html += '<div class="item-meta">' + escapeHtml(meta.join(' / ')) + '</div>';
+                    html += '</li>';
+                });
+                listEl.innerHTML = html;
+            })
+            .catch(function() {
+                document.getElementById('wishList').innerHTML = '<li class="empty-msg">読み込みに失敗しました</li>';
+            });
+    </script>
+</body>
+</html>
