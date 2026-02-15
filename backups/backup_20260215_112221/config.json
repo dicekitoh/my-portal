@@ -1,0 +1,62 @@
+{
+    "site": {
+        "name": "My Portal",
+        "url": "https://dicekitoh.github.io/my-portal/",
+        "local_url": "http://localhost:8085",
+        "description": "Personal portal site",
+        "author": "fujinosuke"
+    },
+    "github": {
+        "repo": "dicekitoh/my-portal",
+        "branch": "master"
+    },
+    "pages": [
+        {
+            "id": "index",
+            "title": "トップページ",
+            "file": "index.html",
+            "protected": false
+        },
+        {
+            "id": "hours",
+            "title": "営業時間",
+            "file": "hours.html",
+            "protected": false
+        },
+        {
+            "id": "private",
+            "title": "Members Only",
+            "file": "private.html",
+            "protected": true
+        },
+        {
+            "id": "news",
+            "title": "お知らせ",
+            "file": "news.html",
+            "protected": false
+        },
+        {
+            "id": "stats",
+            "title": "訪問者統計",
+            "file": "stats.html",
+            "protected": false
+        },
+        {
+            "id": "wishlist",
+            "title": "ほしいもの・したいことリスト",
+            "file": "wishlist.html",
+            "protected": false
+        },
+        {
+            "id": "chat",
+            "title": "AIチャット",
+            "file": "chat.html",
+            "protected": false
+        }
+    ],
+    "settings": {
+        "auto_deploy": true,
+        "backup_before_deploy": true,
+        "notification_email": "dice.k_itoh@softbank.ne.jp"
+    }
+}

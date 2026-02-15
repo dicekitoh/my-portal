@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fan Club - My Portal</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Hiragino Sans", sans-serif;
+            background-color: #ffffff;
+            color: #333;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        header { padding: 2rem; text-align: center; border-bottom: 1px solid #eee; }
+        header h1 { font-size: 1.8rem; font-weight: 300; }
+        main { flex: 1; padding: 2rem; max-width: 800px; margin: 0 auto; width: 100%; }
+        footer { padding: 1rem; text-align: center; border-top: 1px solid #eee; font-size: 0.8rem; color: #999; }
+        .back-link { display: block; text-align: center; margin-top: 2rem; color: #666; text-decoration: none; }
+        .back-link:hover { color: #333; }
+
+        .member-card {
+            border: 1px solid #eee;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            transition: border-color 0.2s;
+        }
+        .member-card:hover { border-color: #00704A; }
+        .member-name {
+            font-size: 1.2rem;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+        .member-location {
+            font-size: 0.85rem;
+            color: #00704A;
+            margin-bottom: 0.8rem;
+        }
+        .member-location a { color: #00704A; text-decoration: none; }
+        .member-location a:hover { text-decoration: underline; }
+        .member-detail {
+            font-size: 0.9rem;
+            color: #666;
+            line-height: 1.7;
+        }
+        .member-detail dt {
+            display: inline;
+            font-weight: 500;
+            color: #333;
+        }
+        .member-detail dd {
+            display: inline;
+            margin-left: 0.3rem;
+            margin-right: 1.2rem;
+        }
+        .tag {
+            display: inline-block;
+            background: #f0f7f4;
+            color: #00704A;
+            font-size: 0.75rem;
+            padding: 0.2rem 0.6rem;
+            border-radius: 12px;
+            margin-right: 0.4rem;
+            margin-bottom: 0.3rem;
+        }
+        .note {
+            margin-top: 1rem;
+            font-size: 0.85rem;
+            color: #999;
+            font-style: italic;
+        }
+        .section-title {
+            font-size: 1rem;
+            font-weight: 400;
+            color: #999;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #f0f0f0;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Fan Club</h1>
+    </header>
+    <main>
+        <p class="section-title">お気に入りの店員さん</p>
+
+        <div class="member-card">
+            <div class="member-name">Name Unknown</div>
+            <div class="member-location">
+                <a href="https://www.google.com/maps/place/%E3%82%B9%E3%82%BF%E3%83%BC%E3%83%90%E3%83%83%E3%82%AF%E3%82%B9+%E3%82%B3%E3%83%BC%E3%83%92%E3%83%BC+%E6%9C%AD%E5%B9%8C%E5%AE%AE%E3%82%B1%E4%B8%98%E5%BA%97/@43.0576127,141.3130795,17z" target="_blank" rel="noopener">
+                    Starbucks Coffee 札幌宮ケ丘店
+                </a>
+            </div>
+            <dl class="member-detail">
+                <dt>Time:</dt><dd>早い時間帯（朝）</dd>
+                <dt>Since:</dt><dd>2026.02</dd>
+            </dl>
+            <div style="margin-top: 0.8rem;">
+                <span class="tag">Starbucks</span>
+                <span class="tag">Morning</span>
+                <span class="tag">札幌宮ケ丘</span>
+            </div>
+            <p class="note">名前はまだ聞いていない</p>
+        </div>
+
+        <a href="index.html" class="back-link">&larr; トップに戻る</a>
+    </main>
+    <footer>
+        <p>&copy; 2026 My Portal</p>
+    </footer>
+</body>
+</html>
