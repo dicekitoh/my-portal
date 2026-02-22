@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>訪問者統計 - My Portal</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Hiragino Sans", sans-serif;
+            background-color: #ffffff;
+            color: #333;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        header { padding: 2rem; text-align: center; border-bottom: 1px solid #eee; }
+        header h1 { font-size: 1.8rem; font-weight: 300; }
+        main { flex: 1; padding: 2rem; max-width: 800px; margin: 0 auto; width: 100%; }
+        footer { padding: 1rem; text-align: center; border-top: 1px solid #eee; font-size: 0.8rem; color: #999; }
+
+        .total-box {
+            text-align: center;
+            padding: 2rem;
+            background: #f9f9f9;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+        }
+        .total-box .number { font-size: 3rem; font-weight: 700; color: #333; }
+        .total-box .label { font-size: 0.9rem; color: #888; margin-top: 0.3rem; }
+
+        h2 { font-size: 1.2rem; font-weight: 500; margin-bottom: 1rem; color: #555; }
+
+        .os-chart { margin-bottom: 2rem; }
+        .os-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.6rem;
+            gap: 0.8rem;
+        }
+        .os-icon { width: 28px; text-align: center; font-size: 1.2rem; flex-shrink: 0; }
+        .os-label { width: 80px; font-size: 0.9rem; flex-shrink: 0; }
+        .os-bar-bg {
+            flex: 1;
+            height: 22px;
+            background: #f0f0f0;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        .os-bar {
+            height: 100%;
+            border-radius: 4px;
+            min-width: 2px;
+            transition: width 0.5s ease;
+        }
+        .os-count { width: 90px; font-size: 0.85rem; color: #666; text-align: right; flex-shrink: 0; }
+
+        .bar-ios { background: #007AFF; }
+        .bar-android { background: #34A853; }
+        .bar-windows { background: #0078D4; }
+        .bar-macos { background: #555; }
+        .bar-linux { background: #E95420; }
+        .bar-chromeos { background: #4285F4; }
+        .bar-other { background: #999; }
+
+        .daily-section { margin-top: 2rem; }
+        .daily-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+        .daily-table th, .daily-table td {
+            padding: 0.5rem 0.6rem;
+            text-align: right;
+            border-bottom: 1px solid #eee;
+        }
+        .daily-table th { font-weight: 500; color: #888; font-size: 0.8rem; }
+        .daily-table th:first-child, .daily-table td:first-child { text-align: left; }
+        .daily-table tr:hover td { background: #fafafa; }
+
+        .back-link { display: block; text-align: center; margin-top: 2rem; color: #666; text-decoration: none; }
+        .back-link:hover { color: #333; }
+
+        .loading { text-align: center; padding: 2rem; color: #999; }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>訪問者統計</h1>
+    </header>
+    <main>
+        <div id="content">
+            <div class="loading">読み込み中...</div>
+        </div>
+        <a href="index.html" class="back-link">← トップに戻る</a>
+    </main>
+    <footer>
+        <p>&copy; 2026 My Portal</p>
+    </footer>
+
+    <script>
+        var OS_META = {
+            iOS:      { icon: '\uD83D\uDCF1', cls: 'bar-ios' },
+            Android:  { icon: '\uD83E\uDD16', cls: 'bar-android' },
+            Windows:  { icon: '\uD83E\uDE9F', cls: 'bar-windows' },
+            macOS:    { icon: '\uD83C\uDF4E', cls: 'bar-macos' },
+            Linux:    { icon: '\uD83D\uDC27', cls: 'bar-linux' },
+            ChromeOS: { icon: '\uD83D\uDCBB', cls: 'bar-chromeos' },
+            Other:    { icon: '\u2753',        cls: 'bar-other' }
+        };
+        var OS_ORDER = ['iOS', 'Android', 'Windows', 'macOS', 'Linux', 'ChromeOS', 'Other'];
+
+        function render(data) {
+            var total = data.total || 0;
+            var byOs = data.by_os || {};
+            var daily = data.daily || {};
+
+            var maxCount = 0;
+            OS_ORDER.forEach(function(os) { if ((byOs[os] || 0) > maxCount) maxCount = byOs[os]; });
+            if (maxCount === 0) maxCount = 1;
+
+            var html = '';
+            html += '<div class="total-box"><div class="number">' + total + '</div><div class="label">総訪問者数</div></div>';
+
+            html += '<h2>OS / デバイス別</h2><div class="os-chart">';
+            OS_ORDER.forEach(function(os) {
+                var count = byOs[os] || 0;
+                if (count === 0) return;
+                var meta = OS_META[os];
+                var pct = total > 0 ? (count / total * 100).toFixed(1) : '0.0';
+                var barW = (count / maxCount * 100).toFixed(1);
+                html += '<div class="os-row">';
+                html += '<div class="os-icon">' + meta.icon + '</div>';
+                html += '<div class="os-label">' + os + '</div>';
+                html += '<div class="os-bar-bg"><div class="os-bar ' + meta.cls + '" style="width:' + barW + '%"></div></div>';
+                html += '<div class="os-count">' + count + ' (' + pct + '%)</div>';
+                html += '</div>';
+            });
+            html += '</div>';
+
+            // 日別推移
+            var days = Object.keys(daily).sort().reverse().slice(0, 7);
+            if (days.length > 0) {
+                html += '<div class="daily-section"><h2>日別推移（直近7日間）</h2>';
+                html += '<table class="daily-table"><thead><tr><th>日付</th><th>合計</th>';
+                OS_ORDER.forEach(function(os) { html += '<th>' + os + '</th>'; });
+                html += '</tr></thead><tbody>';
+                days.forEach(function(day) {
+                    var d = daily[day];
+                    html += '<tr><td>' + day + '</td><td>' + (d.total || 0) + '</td>';
+                    OS_ORDER.forEach(function(os) {
+                        var v = (d.by_os && d.by_os[os]) || 0;
+                        html += '<td>' + (v > 0 ? v : '-') + '</td>';
+                    });
+                    html += '</tr>';
+                });
+                html += '</tbody></table></div>';
+            }
+
+            document.getElementById('content').innerHTML = html;
+        }
+
+        var API_BASE = 'https://3388-2400-2413-9402-db00-9a10-e8ff-fef1-98b4.ngrok-free.app';
+        fetch(API_BASE + '/api/stats', { headers: { 'ngrok-skip-browser-warning': 'true' } })
+            .then(function(r) { return r.json(); })
+            .then(render)
+            .catch(function() {
+                document.getElementById('content').innerHTML = '<p style="color:#c00;text-align:center;">データの読み込みに失敗しました</p>';
+            });
+    </script>
+</body>
+</html>

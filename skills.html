@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>スキル一覧 - My Portal</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Hiragino Sans", sans-serif;
+            background-color: #ffffff;
+            color: #333;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        header { padding: 2rem; text-align: center; border-bottom: 1px solid #eee; }
+        header h1 { font-size: 1.8rem; font-weight: 300; }
+        header p { color: #999; font-size: 0.85rem; margin-top: 0.5rem; }
+        main {
+            flex: 1;
+            padding: 2rem;
+            max-width: 800px;
+            margin: 0 auto;
+            width: 100%;
+        }
+        .intro {
+            margin-bottom: 2rem;
+            color: #666;
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+        .skill-list { display: flex; flex-direction: column; gap: 1rem; }
+        .skill-item {
+            padding: 1.2rem 1.5rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+        }
+        .skill-item:hover { background-color: #f9f9f9; }
+        .skill-header {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            margin-bottom: 0.5rem;
+        }
+        .skill-name {
+            font-size: 1.1rem;
+            font-weight: 500;
+            color: #333;
+        }
+        .skill-cmd {
+            font-family: "SF Mono", "Consolas", monospace;
+            font-size: 0.8rem;
+            color: #666;
+            background-color: #f5f5f5;
+            padding: 0.15rem 0.5rem;
+            border-radius: 3px;
+        }
+        .skill-desc {
+            font-size: 0.9rem;
+            color: #666;
+            line-height: 1.5;
+        }
+        .skill-triggers {
+            margin-top: 0.4rem;
+            font-size: 0.8rem;
+            color: #999;
+        }
+        .category {
+            font-size: 1rem;
+            font-weight: 500;
+            color: #555;
+            margin-top: 2rem;
+            margin-bottom: 0.8rem;
+            padding-bottom: 0.3rem;
+            border-bottom: 1px solid #eee;
+        }
+        .category:first-of-type { margin-top: 0; }
+        .count {
+            text-align: center;
+            margin-bottom: 1.5rem;
+            font-size: 2rem;
+            font-weight: 200;
+            color: #333;
+        }
+        .count span { font-size: 0.9rem; color: #999; }
+        .back-link {
+            display: block;
+            text-align: center;
+            margin-top: 2rem;
+            color: #666;
+            text-decoration: none;
+        }
+        .back-link:hover { color: #333; }
+        footer { padding: 1rem; text-align: center; border-top: 1px solid #eee; font-size: 0.8rem; color: #999; }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Claude Code スキル一覧</h1>
+        <p>2026年2月22日 現在</p>
+    </header>
+    <main>
+        <div class="count">11 <span>skills</span></div>
+        <p class="intro">Claude Code で利用可能なスキル（スラッシュコマンド）の一覧です。各スキルはキーワードまたは <code>/コマンド名</code> で呼び出せます。</p>
+
+        <h2 class="category">デバイス・接続</h2>
+        <div class="skill-list">
+            <div class="skill-item">
+                <div class="skill-header">
+                    <span class="skill-name">デバイス一括接続</span>
+                    <span class="skill-cmd">/connect</span>
+                </div>
+                <div class="skill-desc">自宅3台のPC（Linux / macOS / Windows）にSSH接続して状態を一覧表示する。</div>
+                <div class="skill-triggers">発動: すべてのデバイスに接続, 自宅に接続, リモート接続, デバイス確認</div>
+            </div>
+        </div>
+
+        <h2 class="category">情報検索・AI</h2>
+        <div class="skill-list">
+            <div class="skill-item">
+                <div class="skill-header">
+                    <span class="skill-name">マルチAI相談</span>
+                    <span class="skill-cmd">/ask-ai</span>
+                </div>
+                <div class="skill-desc">複数AI（Claude・Gemini・Grok・Perplexity・Codex）に同じ質問をして回答を比較する。</div>
+                <div class="skill-triggers">発動: 3つのAIに聞いて, Geminiの意見も聞きたい, マルチAI相談</div>
+            </div>
+            <div class="skill-item">
+                <div class="skill-header">
+                    <span class="skill-name">X リアルタイム検索</span>
+                    <span class="skill-cmd">/x-search</span>
+                </div>
+                <div class="skill-desc">X（旧Twitter）をGrok API経由でリアルタイム検索する。</div>
+                <div class="skill-triggers">発動: X検索, Xで調べて, ツイート検索, Xで何か話題</div>
+            </div>
+        </div>
+
+        <h2 class="category">ブログ・コンテンツ</h2>
+        <div class="skill-list">
+            <div class="skill-item">
+                <div class="skill-header">
+                    <span class="skill-name">ブログ投稿</span>
+                    <span class="skill-cmd">/blog</span>
+                </div>
+                <div class="skill-desc">Blogger APIで5つのブログに記事を執筆・投稿する。</div>
+                <div class="skill-triggers">発動: ブログ投稿, ブログに書いて, 記事投稿, ブログ下書き</div>
+            </div>
+        </div>
+
+        <h2 class="category">タスク・スケジュール</h2>
+        <div class="skill-list">
+            <div class="skill-item">
+                <div class="skill-header">
+                    <span class="skill-name">TODO三方向同期</span>
+                    <span class="skill-cmd">/todo</span>
+                </div>
+                <div class="skill-desc">URLからTODOを自動生成し、Google Tasks / Apple Reminders / Microsoft To Do に追加・同期する。</div>
+                <div class="skill-triggers">発動: TODO作成, これTODOにして, 同期チェック</div>
+            </div>
+            <div class="skill-item">
+                <div class="skill-header">
+                    <span class="skill-name">HOTEL FORESTY 登録</span>
+                    <span class="skill-cmd">/hotel</span>
+                </div>
+                <div class="skill-desc">HOTEL FORESTY の予定をGoogle Calendarに登録・更新する。</div>
+                <div class="skill-triggers">発動: ホテル登録, FORESTY, /hotel 2/16 10:00-15:30</div>
+            </div>
+            <div class="skill-item">
+                <div class="skill-header">
+                    <span class="skill-name">勤務準備</span>
+                    <span class="skill-cmd">/shift-prep</span>
+                </div>
+                <div class="skill-desc">勤務前の準備を対話形式で組み立て、TODOとカレンダー予定を自動作成する。</div>
+                <div class="skill-triggers">発動: 勤務準備, シフト準備, /shift-prep 2/19</div>
+            </div>
+        </div>
+
+        <h2 class="category">データ収集・更新</h2>
+        <div class="skill-list">
+            <div class="skill-item">
+                <div class="skill-header">
+                    <span class="skill-name">シティヘブンDB</span>
+                    <span class="skill-cmd">/ch</span>
+                </div>
+                <div class="skill-desc">シティヘブン北海道DBの更新・検索・分析を行う。</div>
+                <div class="skill-triggers">発動: CH更新, シティヘブン, キャスト検索, キャスト分析</div>
+            </div>
+            <div class="skill-item">
+                <div class="skill-header">
+                    <span class="skill-name">オービスデータ更新</span>
+                    <span class="skill-cmd">/orbis</span>
+                </div>
+                <div class="skill-desc">速度測定装置（オービス）のデータを差分更新・確認する。</div>
+                <div class="skill-triggers">発動: オービス更新, オービス確認, orbis log</div>
+            </div>
+        </div>
+
+        <h2 class="category">設定</h2>
+        <div class="skill-list">
+            <div class="skill-item">
+                <div class="skill-header">
+                    <span class="skill-name">キーバインド設定</span>
+                    <span class="skill-cmd">/keybindings-help</span>
+                </div>
+                <div class="skill-desc">キーボードショートカットのカスタマイズ・リバインド設定。</div>
+                <div class="skill-triggers">発動: rebind ctrl+s, customize keybindings</div>
+            </div>
+        </div>
+
+        <a href="index.html" class="back-link">&larr; トップに戻る</a>
+    </main>
+    <footer>
+        <p>&copy; 2026 My Portal</p>
+    </footer>
+</body>
+</html>
