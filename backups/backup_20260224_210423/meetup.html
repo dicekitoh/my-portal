@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>秒ぴったり待ち合わせタイマー</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: 'Segoe UI', 'Helvetica Neue', sans-serif;
+  background: #0a0a1a;
+  color: #e0e0e0;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  transition: background 0.3s;
+}
+body.warn { background: #1a0a00; }
+body.danger { background: #2a0000; }
+body.flash { animation: flash 0.5s ease; }
+body.arrived { background: #001a00; }
+
+@keyframes flash {
+  0%, 100% { background: #2a0000; }
+  50% { background: #ff0000; }
+}
+
+.label {
+  font-size: 1.2em;
+  color: #888;
+  margin-bottom: 8px;
+  letter-spacing: 2px;
+}
+.target-time {
+  font-size: 2.5em;
+  font-weight: 300;
+  color: #4fc3f7;
+  margin-bottom: 40px;
+  letter-spacing: 4px;
+}
+.countdown {
+  font-size: 8em;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 4px;
+  line-height: 1;
+  margin-bottom: 12px;
+  transition: color 0.3s;
+}
+.countdown.warn { color: #ffab40; }
+.countdown.danger { color: #ff5252; }
+.countdown.arrived { color: #69f0ae; }
+
+.sub-seconds {
+  font-size: 2em;
+  font-variant-numeric: tabular-nums;
+  color: #666;
+  margin-bottom: 40px;
+}
+.message {
+  font-size: 1.8em;
+  font-weight: 300;
+  letter-spacing: 2px;
+  min-height: 1.5em;
+}
+.message.arrived { color: #69f0ae; font-weight: 700; }
+.message.over { color: #ff5252; }
+
+.now-clock {
+  position: fixed;
+  bottom: 20px;
+  right: 24px;
+  font-size: 1.1em;
+  color: #555;
+  font-variant-numeric: tabular-nums;
+}
+.share-hint {
+  position: fixed;
+  bottom: 20px;
+  left: 24px;
+  font-size: 0.85em;
+  color: #444;
+  max-width: 300px;
+}
+.share-hint a { color: #4fc3f7; text-decoration: none; }
+
+.progress-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 4px;
+  background: #4fc3f7;
+  transition: width 0.1s linear, background 0.3s;
+}
+.progress-bar.warn { background: #ffab40; }
+.progress-bar.danger { background: #ff5252; }
+</style>
+</head>
+<body>
+<div class="progress-bar" id="progress"></div>
+<div class="label">待ち合わせ時刻</div>
+<div class="target-time" id="target">--:--:--</div>
+<div class="countdown" id="countdown">--:--:--</div>
+<div class="sub-seconds" id="subsec">.000</div>
+<div class="message" id="message"></div>
+<div class="now-clock" id="now">現在 --:--:--</div>
+<div class="share-hint" id="hint"></div>
+
+<script>
+(function() {
+  const params = new URLSearchParams(location.search);
+  const meetParam = params.get('meet') || '21:05:00';
+
+  // Parse HH:MM or HH:MM:SS
+  const parts = meetParam.split(':');
+  const h = parseInt(parts[0], 10) || 0;
+  const m = parseInt(parts[1], 10) || 0;
+  const s = parseInt(parts[2], 10) || 0;
+
+  // Build target Date for today
+  function getTarget() {
+    const now = new Date();
+    const target = new Date(now.getFullYear(), now.getMonth(), now.getDate(), h, m, s, 0);
+    // If target has passed, show "arrived/over" state (don't jump to tomorrow)
+    return target;
+  }
+
+  const targetDate = getTarget();
+  const targetEl = document.getElementById('target');
+  const countdownEl = document.getElementById('countdown');
+  const subsecEl = document.getElementById('subsec');
+  const messageEl = document.getElementById('message');
+  const nowEl = document.getElementById('now');
+  const hintEl = document.getElementById('hint');
+  const progressEl = document.getElementById('progress');
+  const body = document.body;
+
+  // Display target
+  const pad = (n, d=2) => String(n).padStart(d, '0');
+  targetEl.textContent = `${pad(h)}:${pad(m)}:${pad(s)}`;
+
+  // Share hint
+  const url = `${location.origin}${location.pathname}?meet=${pad(h)}:${pad(m)}:${pad(s)}`;
+  hintEl.innerHTML = `このURLを相手に共有 → <a href="${url}">${pad(h)}:${pad(m)}:${pad(s)}</a>`;
+
+  // Track initial remaining for progress bar
+  const initialRemaining = Math.max(targetDate.getTime() - Date.now(), 1);
+  let lastFlashSec = -1;
+  let arrivedAudioPlayed = false;
+
+  function tick() {
+    const now = new Date();
+    const diffMs = targetDate.getTime() - now.getTime();
+    const absDiff = Math.abs(diffMs);
+
+    // Current time display
+    nowEl.textContent = `現在 ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}.${pad(now.getMilliseconds(), 3)}`;
+
+    // Progress bar
+    if (diffMs > 0) {
+      const pct = Math.max(0, Math.min(100, ((initialRemaining - diffMs) / initialRemaining) * 100));
+      progressEl.style.width = pct + '%';
+    } else {
+      progressEl.style.width = '100%';
+    }
+
+    if (diffMs > 0) {
+      // Counting down
+      const totalSec = Math.ceil(diffMs / 1000);
+      const hours = Math.floor(totalSec / 3600);
+      const mins = Math.floor((totalSec % 3600) / 60);
+      const secs = totalSec % 60;
+      const ms = 1000 - (diffMs % 1000);
+
+      countdownEl.textContent = hours > 0
+        ? `${pad(hours)}:${pad(mins)}:${pad(secs)}`
+        : `${pad(mins)}:${pad(secs)}`;
+      subsecEl.textContent = `.${pad(ms % 1000, 3)}`;
+
+      // Color states
+      body.className = '';
+      countdownEl.className = 'countdown';
+      progressEl.className = 'progress-bar';
+
+      if (totalSec <= 3) {
+        body.className = 'danger';
+        countdownEl.className = 'countdown danger';
+        progressEl.className = 'progress-bar danger';
+        // Flash each second
+        const currentSec = Math.ceil(diffMs / 1000);
+        if (currentSec !== lastFlashSec) {
+          lastFlashSec = currentSec;
+          body.classList.add('flash');
+          setTimeout(() => body.classList.remove('flash'), 500);
+        }
+        messageEl.textContent = '';
+      } else if (totalSec <= 10) {
+        body.className = 'warn';
+        countdownEl.className = 'countdown warn';
+        progressEl.className = 'progress-bar warn';
+        messageEl.textContent = 'まもなく到着時刻';
+        messageEl.className = 'message';
+      } else if (totalSec <= 60) {
+        messageEl.textContent = 'あと1分以内';
+        messageEl.className = 'message';
+      } else {
+        messageEl.textContent = '';
+        messageEl.className = 'message';
+      }
+
+    } else if (absDiff < 1000) {
+      // Arrived! (within 1 second of target)
+      countdownEl.textContent = '00:00';
+      subsecEl.textContent = '.000';
+      countdownEl.className = 'countdown arrived';
+      body.className = 'arrived';
+      messageEl.textContent = '到着時刻です！';
+      messageEl.className = 'message arrived';
+      progressEl.className = 'progress-bar';
+    } else {
+      // Overdue
+      const overSec = Math.floor(absDiff / 1000);
+      const overMin = Math.floor(overSec / 60);
+      const overS = overSec % 60;
+      countdownEl.textContent = overMin > 0
+        ? `+${pad(overMin)}:${pad(overS)}`
+        : `+${pad(overS)}`;
+      subsecEl.textContent = '';
+      countdownEl.className = 'countdown danger';
+      body.className = 'danger';
+      messageEl.textContent = `${overSec}秒 経過`;
+      messageEl.className = 'message over';
+    }
+
+    requestAnimationFrame(tick);
+  }
+
+  requestAnimationFrame(tick);
+})();
+</script>
+</body>
+</html>
